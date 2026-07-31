@@ -74,20 +74,10 @@ st.markdown("""
     /* Just in case Streamlit is using an SVG icon wrapper */
     .stMarkdown a svg {
         display: none !important;
-        
-    /* Hides the main header and top right menu */
-    header {visibility: hidden !important;}
-    [data-testid="stHeader"] {visibility: hidden !important;}
     
-    /* Hides the 'Fork' and GitHub toolbar */
-    [data-testid="stToolbar"] {visibility: hidden !important;}
-    
-    /* Hides the 'Hosted with Streamlit' bottom right ribbon */
-    .viewerBadge_container {display: none !important;}
-    .viewerBadge_link {display: none !important;}
-    
-    /* Hides standard footer */
-    footer {visibility: hidden !important;}
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
     }
     </style>
 """, unsafe_allow_html=True)
