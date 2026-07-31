@@ -87,6 +87,14 @@ st.markdown("""
         border-radius: 0px !important;
     }
     
+    #root > div:first-child,
+    .stApp, 
+    [data-testid="stAppViewContainer"], 
+    [data-testid="stAppViewBlockContainer"] {
+        border: none !important;
+        border-radius: 0px !important;
+        box-shadow: none !important;
+    
 
     }
     </style>
