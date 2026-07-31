@@ -74,6 +74,7 @@ st.markdown("""
     /* Just in case Streamlit is using an SVG icon wrapper */
     .stMarkdown a svg {
         display: none !important;
+        }
     
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
