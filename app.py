@@ -94,6 +94,7 @@ st.markdown("""
         border: none !important;
         border-radius: 0px !important;
         box-shadow: none !important;
+        outline: none !important;
     
 
     }
