@@ -74,6 +74,12 @@ st.markdown("""
     /* Just in case Streamlit is using an SVG icon wrapper */
     .stMarkdown a svg {
         display: none !important;
+        
+    /* Hides the top right menu (Fork, GitHub, 3 dots) */
+    [data-testid="stHeader"] {visibility: hidden;}
+    
+    /* Hides the bottom 'Made with Streamlit' footer */
+    footer {visibility: hidden;}
     }
     </style>
 """, unsafe_allow_html=True)
