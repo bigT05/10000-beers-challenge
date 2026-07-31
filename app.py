@@ -75,11 +75,19 @@ st.markdown("""
     .stMarkdown a svg {
         display: none !important;
         
-    /* Hides the top right menu (Fork, GitHub, 3 dots) */
-    [data-testid="stHeader"] {visibility: hidden;}
+    /* Hides the main header and top right menu */
+    header {visibility: hidden !important;}
+    [data-testid="stHeader"] {visibility: hidden !important;}
     
-    /* Hides the bottom 'Made with Streamlit' footer */
-    footer {visibility: hidden;}
+    /* Hides the 'Fork' and GitHub toolbar */
+    [data-testid="stToolbar"] {visibility: hidden !important;}
+    
+    /* Hides the 'Hosted with Streamlit' bottom right ribbon */
+    .viewerBadge_container {display: none !important;}
+    .viewerBadge_link {display: none !important;}
+    
+    /* Hides standard footer */
+    footer {visibility: hidden !important;}
     }
     </style>
 """, unsafe_allow_html=True)
