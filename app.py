@@ -75,6 +75,17 @@ st.markdown("""
     .stMarkdown a svg {
         display: none !important;
     }
+    /* REMOVES THE CURVED EDGES AND WHITE BORDER */
+    .stApp {
+        border: none !important;
+        border-radius: 0px !important;
+    }
+    
+    /* Ensures no background bleed from the embed wrapper */
+    [data-testid="stAppViewContainer"] {
+        border: none !important;
+        border-radius: 0px !important;
+    }
     
 
     }
