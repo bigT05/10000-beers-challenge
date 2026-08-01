@@ -722,7 +722,7 @@ with tab1:
         day_counts.columns = ['Day', 'Count']
 
         fig_days = px.bar(day_counts, x='Day', y='Count', template="plotly_dark")
-        fig_days.update_traces(marker_color='#17a2b8')
+        fig_days.update_traces(marker_color='#28a745')
         fig_days.update_layout(xaxis_title="Day of Week", yaxis_title="Total Beers")
         st.plotly_chart(fig_days, use_container_width=True)
 
