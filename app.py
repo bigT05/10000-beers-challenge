@@ -217,6 +217,15 @@ def load_data():
         df['Time of Beer (UTC)'] = df['Time of Beer (UTC)'].fillna(fallback_time_str)
 
         # --- NORMALIZE MIXED FORMATS ---
+        # Helper to catch Excel serial dates (like 46235) and convert them to strings
+        def fix_excel_serial(val):
+            if isinstance(val, (int, float)):
+                # Excel's date epoch starts at Dec 30, 1899
+                return (pd.to_datetime('1899-12-30') + pd.Timedelta(days=val)).strftime('%d/%m/%Y')
+            return val
+
+        df['Date of Beer (UTC)'] = df['Date of Beer (UTC)'].apply(fix_excel_serial)
+
         normalized_dates = pd.to_datetime(df['Date of Beer (UTC)'], dayfirst=True, errors='coerce')
         normalized_times = df['Time of Beer (UTC)'].astype(str)
         df['Datetime'] = pd.to_datetime(
