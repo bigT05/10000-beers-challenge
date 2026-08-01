@@ -98,6 +98,30 @@ st.markdown("""
     
 
     }
+    
+    /* Reorder podium to 1st, 2nd, 3rd when stacked on mobile */
+    @media (max-width: 640px) {
+    div[data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    div[data-testid="column"]:has(.first-place) {
+        order: 1 !important;
+    }
+    div[data-testid="column"]:has(.second-place) {
+        order: 2 !important;
+    }
+    div[data-testid="column"]:has(.third-place) {
+        order: 3 !important;
+    }
+
+    /* Reset the desktop podium height offsets so they don't look staggered when stacked */
+    .podium-box.first-place,
+    .podium-box.second-place,
+    .podium-box.third-place {
+        margin-top: 0px !important;
+    }
+}
     </style>
 """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------
@@ -642,7 +666,7 @@ with tab1:
 
 
 with tab2:
-    st.subheader("Full Beer List")
+    st.subheader("Beer List")
 
     full_list = df.sort_values(by="Datetime", ascending=False).copy()
     full_list = full_list.reset_index(drop=True)
