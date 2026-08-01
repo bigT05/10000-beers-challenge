@@ -45,7 +45,7 @@ st.markdown("""
         text-align: center;
         padding: 20px;
         border-radius: 10px;
-        background-color: #1e1e1e;
+        background-color: var(--secondary-background-color);
         border: 1px solid #333;
     }
     .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
