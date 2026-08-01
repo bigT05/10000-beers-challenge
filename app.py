@@ -20,18 +20,15 @@ st.markdown("""
         background-color: transparent !important;
         z-index: 99999 !important;
     }
-
     /* MAKE SIDEBAR HEADER TRANSPARENT BUT KEEP IT IN PLACE SO IT'S CLICKABLE */
     [data-testid="stSidebarHeader"] {
         background-color: transparent !important;
         padding-bottom: 0rem !important;
     }
-
     /* THIS REMOVES THE GAP AT THE TOP OF THE MAIN PAGE */
     .block-container {
         padding-top: 2rem !important;
     }
-
     /* THIS REMOVES THE GAP AT THE TOP OF THE SIDEBAR */
     section[data-testid="stSidebar"] > div:first-child {
         padding-top: 0rem !important; 
@@ -39,12 +36,10 @@ st.markdown("""
     [data-testid="stSidebarUserContent"] {
         padding-top: 0rem !important;
     }
-
     /* Existing green bar styling */
     .stProgress > div > div > div > div {
         background-color: #28a745; 
     }
-
     /* UPDATED PODIUM STYLING (No more h2/h3 tags) */
     .podium-box {
         text-align: center;
@@ -56,12 +51,10 @@ st.markdown("""
     .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
     .second-place { border-top: 5px solid #C0C0C0; margin-top: 30px; }
     .third-place { border-top: 5px solid #CD7F32; margin-top: 50px; }
-
     /* New Custom Text Sizes to replace headers */
     .podium-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
     .podium-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
     .podium-score { font-size: 1rem; color: #e0e0e0; margin: 0px; }
-
     /* HIDE STREAMLIT HEADER ANCHOR LINKS */
     a.header-anchor {
         display: none !important;
@@ -70,7 +63,7 @@ st.markdown("""
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
-    
+
     /* Just in case Streamlit is using an SVG icon wrapper */
     .stMarkdown a svg {
         display: none !important;
@@ -80,13 +73,13 @@ st.markdown("""
         border: none !important;
         border-radius: 0px !important;
     }
-    
+
     /* Ensures no background bleed from the embed wrapper */
     [data-testid="stAppViewContainer"] {
         border: none !important;
         border-radius: 0px !important;
     }
-    
+
     #root > div:first-child,
     .stApp, 
     [data-testid="stAppViewContainer"], 
@@ -95,20 +88,15 @@ st.markdown("""
         border-radius: 0px !important;
         box-shadow: none !important;
         outline: none !important;
-    
-
     }
-    
-/* On desktop, visually reorder columns so 2nd is left, 1st is center, 3rd is right (classic podium look) */
-@media (min-width: 641px) {
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) { order: 2; }
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) { order: 1; }
-    div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
-    div[data-testid="stHorizontalBlock"] { display: flex !important; }
-}
 
-
-}
+    /* PODIUM REORDER - scoped ONLY to the podium container, desktop only */
+    @media (min-width: 641px) {
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) { order: 2; }
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) { order: 1; }
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] { display: flex !important; }
+    }
     </style>
 """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------
@@ -347,38 +335,39 @@ with tab1:
 
         # -- THE TOP 3 PODIUM (HTML STYLE) --
         # vertical_alignment="bottom" ensures they all sit on the exact same baseline!
-        pod1, pod2, pod3 = st.columns(3, vertical_alignment="bottom")
+        with st.container(key="podium_container"):
+            pod1, pod2, pod3 = st.columns(3, vertical_alignment="bottom")
 
-        with pod1:
-            st.markdown(
-                f"<div class='podium-box first-place' style='height: 310px; display: flex; flex-direction: column; justify-content: center;'>"
-                f"<div class='podium-title'>1st 🥇</div>"
-                f"<div class='podium-name'><b>{top_3_names[0]}</b></div>"
-                f"<div class='podium-score'>🍺 {top_3_scores[0]} beers</div>"
-                f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[0]} beers/day</div>"
-                f"</div>",
-                unsafe_allow_html=True
-            )
-        with pod2:
-            st.markdown(
-                f"<div class='podium-box second-place' style='height: 250px; display: flex; flex-direction: column; justify-content: center;'>"
-                f"<div class='podium-title'>2nd 🥈</div>"
-                f"<div class='podium-name'><b>{top_3_names[1]}</b></div>"
-                f"<div class='podium-score'>🍺 {top_3_scores[1]} beers</div>"
-                f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[1]} beers/day</div>"
-                f"</div>",
-                unsafe_allow_html=True
-            )
-        with pod3:
-            st.markdown(
-                f"<div class='podium-box third-place' style='height: 200px; display: flex; flex-direction: column; justify-content: center;'>"
-                f"<div class='podium-title'>3rd 🥉</div>"
-                f"<div class='podium-name'><b>{top_3_names[2]}</b></div>"
-                f"<div class='podium-score'>🍺 {top_3_scores[2]} beers</div>"
-                f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[2]} beers/day</div>"
-                f"</div>",
-                unsafe_allow_html=True
-            )
+            with pod1:
+                st.markdown(
+                    f"<div class='podium-box first-place' style='height: 310px; display: flex; flex-direction: column; justify-content: center;'>"
+                    f"<div class='podium-title'>1st 🥇</div>"
+                    f"<div class='podium-name'><b>{top_3_names[0]}</b></div>"
+                    f"<div class='podium-score'>🍺 {top_3_scores[0]} beers</div>"
+                    f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[0]} beers/day</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+            with pod2:
+                st.markdown(
+                    f"<div class='podium-box second-place' style='height: 250px; display: flex; flex-direction: column; justify-content: center;'>"
+                    f"<div class='podium-title'>2nd 🥈</div>"
+                    f"<div class='podium-name'><b>{top_3_names[1]}</b></div>"
+                    f"<div class='podium-score'>🍺 {top_3_scores[1]} beers</div>"
+                    f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[1]} beers/day</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+            with pod3:
+                st.markdown(
+                    f"<div class='podium-box third-place' style='height: 200px; display: flex; flex-direction: column; justify-content: center;'>"
+                    f"<div class='podium-title'>3rd 🥉</div>"
+                    f"<div class='podium-name'><b>{top_3_names[2]}</b></div>"
+                    f"<div class='podium-score'>🍺 {top_3_scores[2]} beers</div>"
+                    f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[2]} beers/day</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
 
         st.markdown("<br>", unsafe_allow_html=True)
 
