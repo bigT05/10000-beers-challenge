@@ -45,6 +45,7 @@ st.markdown("""
         text-align: center;
         padding: 20px;
         border-radius: 10px;
+        background-color: #1e1e1e;
         border: 1px solid #333;
     }
     .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
@@ -125,38 +126,6 @@ st.markdown("""
         }
         .st-key-podium_container .podium-score {
             font-size: 0.85rem !important;
-        }
-    }
-    
-/* LIGHT MODE PODIUM STYLING (DEFAULT) */
-    .podium-box {
-        text-align: center;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #f0f2f6; /* Light grey background */
-        border: 1px solid #ddd;    /* Light grey border */
-        color: #31333F;            /* Dark text */
-    }
-    
-    .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
-    .second-place { border-top: 5px solid #C0C0C0; margin-top: 30px; }
-    .third-place { border-top: 5px solid #CD7F32; margin-top: 50px; }
-    
-    .podium-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
-    .podium-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
-    
-    /* Dark grey subtext for light mode */
-    .podium-score { font-size: 1rem; color: #555555; margin: 0px; } 
-
-    /* DARK MODE PODIUM OVERRIDES */
-    @media (prefers-color-scheme: dark) {
-        .podium-box {
-            background-color: #1e1e1e; /* Sleek dark grey background */
-            border: 1px solid #333;    /* Dark border */
-            color: #FFFFFF;            /* White text */
-        }
-        .podium-score { 
-            color: #e0e0e0;            /* Light grey subtext for dark mode */
         }
     }
     
