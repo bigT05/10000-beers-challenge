@@ -112,7 +112,7 @@ st.markdown("""
         .st-key-podium_container .podium-box {
             height: 140px !important;
             padding: 12px !important;
-            margin-top: 0px !important;
+            margin-top: 10px !important;
         }
 
         /* Shrink text sizes to fit better on small screens */
