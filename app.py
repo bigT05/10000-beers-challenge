@@ -129,6 +129,38 @@ st.markdown("""
         }
     }
     
+    /* BULLETPROOF PODIUM STYLING (Works in every theme automatically) */
+    .podium-box {
+        text-align: center;
+        padding: 20px;
+        border-radius: 10px;
+        
+        /* Tinted glass effect: 15% opacity grey */
+        background-color: rgba(128, 128, 128, 0.15); 
+        
+        /* Slightly stronger grey for the border */
+        border: 1px solid rgba(128, 128, 128, 0.3);
+        
+        /* Inherits whatever the current Streamlit text color is */
+        color: var(--text-color, inherit); 
+    }
+    
+    .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
+    .second-place { border-top: 5px solid #C0C0C0; margin-top: 30px; }
+    .third-place { border-top: 5px solid #CD7F32; margin-top: 50px; }
+    
+    .podium-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
+    .podium-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
+    
+    /* 60% opacity grey text so it looks like soft subtext on both dark and light modes */
+    /* Automatically flips white/black, but with 80% opacity to look like subtext */
+    .podium-score { 
+        font-size: 1rem; 
+        color: var(--text-color, inherit); 
+        opacity: 0.8; 
+        margin: 0px; 
+    }
+    
     </style>
 """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------
