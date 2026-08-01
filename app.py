@@ -655,15 +655,6 @@ with tab2:
 
     display_df = full_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
 
-    # Optional: filter by person
-    owner_filter = st.multiselect(
-        "Filter by name",
-        options=sorted(df['Beer Owner'].unique()),
-        default=[]
-    )
-    if owner_filter:
-        display_df = display_df[display_df['Beer Owner'].isin(owner_filter)]
-
     st.dataframe(
         display_df,
         use_container_width=True,
