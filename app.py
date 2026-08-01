@@ -97,6 +97,37 @@ st.markdown("""
         .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
         .st-key-podium_container div[data-testid="stHorizontalBlock"] { display: flex !important; }
     }
+    
+    /* PODIUM MOBILE COMPACT STYLING */
+    @media (max-width: 640px) {
+        /* Shrink the gap between stacked podium columns */
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] {
+            gap: 0.5rem !important;
+        }
+        .st-key-podium_container div[data-testid="column"] {
+            gap: 0.5rem !important;
+        }
+
+        /* Force all three podium boxes to the same, smaller height on mobile */
+        .st-key-podium_container .podium-box {
+            height: 140px !important;
+            padding: 12px !important;
+            margin-top: 0px !important;
+        }
+
+        /* Shrink text sizes to fit better on small screens */
+        .st-key-podium_container .podium-title {
+            font-size: 1.3rem !important;
+            margin-bottom: 4px !important;
+        }
+        .st-key-podium_container .podium-name {
+            font-size: 1.1rem !important;
+            margin-bottom: 4px !important;
+        }
+        .st-key-podium_container .podium-score {
+            font-size: 0.85rem !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------
