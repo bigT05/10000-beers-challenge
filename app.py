@@ -183,17 +183,35 @@ def load_data():
         try:
             meta_df = pd.read_excel(DROPBOX_DIRECT_URL, sheet_name="Metadata", header=None, engine='openpyxl')
 
-            manual_date = str(meta_df.iloc[1, 1]).strip()
+            # --- NEW HELPER FOR METADATA DATES ---
+            def fix_meta_date(val):
+                if pd.isna(val):
+                    return ""
+                # If Excel stored it as a serial number (e.g., 46235)
+                if isinstance(val, (int, float)):
+                    return (pd.to_datetime('1899-12-30') + pd.Timedelta(days=val)).strftime('%d/%m/%Y')
+                # If Pandas read it natively as a Datetime object
+                from datetime import datetime
+                if isinstance(val, (pd.Timestamp, datetime)):
+                    return val.strftime('%d/%m/%Y')
+                # Otherwise, treat as normal text
+                return str(val).strip()
+
+            # Parse Manual Timestamp (AppSheet)
+            manual_date = fix_meta_date(meta_df.iloc[1, 1])
             manual_time = str(meta_df.iloc[1, 2]).strip()
             manual_sync_dt = pd.to_datetime(f"{manual_date} {manual_time}", dayfirst=True, errors='coerce')
+
             if pd.notna(manual_sync_dt):
                 manual_sync_dt = manual_sync_dt.replace(tzinfo=timezone.utc)
             else:
                 manual_sync_dt = pd.NaT
 
-            sync_date = str(meta_df.iloc[2, 1]).strip()
+            # Parse Snapchat/Sync Timestamp
+            sync_date = fix_meta_date(meta_df.iloc[2, 1])
             sync_time = str(meta_df.iloc[2, 2]).strip()
             last_sync_dt = pd.to_datetime(f"{sync_date} {sync_time}", dayfirst=True, errors='coerce')
+
             if pd.notna(last_sync_dt):
                 last_sync_dt = last_sync_dt.replace(tzinfo=timezone.utc)
             else:
