@@ -642,11 +642,13 @@ with tab1:
 
 
 with tab2:
-    st.subheader("Full Beer List 📋")
+    st.subheader("Full Beer List")
 
     full_list = df.sort_values(by="Datetime", ascending=False).copy()
     full_list = full_list.reset_index(drop=True)
-    full_list.insert(0, "Beer #", range(len(full_list), 0, -1))  # numbers newest=highest, oldest=1
+
+    # Assign directly (overwrites if it somehow already exists, never raises)
+    full_list["Beer #"] = range(len(full_list), 0, -1)
 
     full_list['Date'] = full_list['Datetime'].dt.strftime('%d %b %Y')
     full_list['Time (UTC)'] = full_list['Datetime'].dt.strftime('%H:%M')
