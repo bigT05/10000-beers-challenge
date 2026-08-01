@@ -99,28 +99,15 @@ st.markdown("""
 
     }
     
-    /* Reorder podium to 1st, 2nd, 3rd when stacked on mobile */
-    @media (max-width: 640px) {
-    div[data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    div[data-testid="column"]:has(.first-place) {
-        order: 1 !important;
-    }
-    div[data-testid="column"]:has(.second-place) {
-        order: 2 !important;
-    }
-    div[data-testid="column"]:has(.third-place) {
-        order: 3 !important;
-    }
+/* On desktop, visually reorder columns so 2nd is left, 1st is center, 3rd is right (classic podium look) */
+@media (min-width: 641px) {
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) { order: 2; }
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) { order: 1; }
+    div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
+    div[data-testid="stHorizontalBlock"] { display: flex !important; }
+}
 
-    /* Reset the desktop podium height offsets so they don't look staggered when stacked */
-    .podium-box.first-place,
-    .podium-box.second-place,
-    .podium-box.third-place {
-        margin-top: 0px !important;
-    }
+
 }
     </style>
 """, unsafe_allow_html=True)
@@ -364,21 +351,21 @@ with tab1:
 
         with pod1:
             st.markdown(
-                f"<div class='podium-box second-place' style='height: 250px; display: flex; flex-direction: column; justify-content: center;'>"
-                f"<div class='podium-title'>2nd 🥈</div>"
-                f"<div class='podium-name'><b>{top_3_names[1]}</b></div>"
-                f"<div class='podium-score'>🍺 {top_3_scores[1]} beers</div>"
-                f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[1]} beers/day</div>"
-                f"</div>",
-                unsafe_allow_html=True
-            )
-        with pod2:
-            st.markdown(
                 f"<div class='podium-box first-place' style='height: 310px; display: flex; flex-direction: column; justify-content: center;'>"
                 f"<div class='podium-title'>1st 🥇</div>"
                 f"<div class='podium-name'><b>{top_3_names[0]}</b></div>"
                 f"<div class='podium-score'>🍺 {top_3_scores[0]} beers</div>"
                 f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[0]} beers/day</div>"
+                f"</div>",
+                unsafe_allow_html=True
+            )
+        with pod2:
+            st.markdown(
+                f"<div class='podium-box second-place' style='height: 250px; display: flex; flex-direction: column; justify-content: center;'>"
+                f"<div class='podium-title'>2nd 🥈</div>"
+                f"<div class='podium-name'><b>{top_3_names[1]}</b></div>"
+                f"<div class='podium-score'>🍺 {top_3_scores[1]} beers</div>"
+                f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[1]} beers/day</div>"
                 f"</div>",
                 unsafe_allow_html=True
             )
