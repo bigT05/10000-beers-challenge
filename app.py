@@ -45,7 +45,6 @@ st.markdown("""
         text-align: center;
         padding: 20px;
         border-radius: 10px;
-        background-color: #1e1e1e;
         border: 1px solid #333;
     }
     .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
@@ -126,6 +125,24 @@ st.markdown("""
         }
         .st-key-podium_container .podium-score {
             font-size: 0.85rem !important;
+        }
+    }
+    
+    /* 1. DEFAULT (LIGHT MODE) */
+    /* This will be used when the user is in Light Mode */
+    .your-podium-class {
+        background-color: #1e1e1e; /* A nice visible light grey */
+        color: #31333F; /* Dark text for contrast */
+        border-radius: 10px; /* Keep your existing rounded corners! */
+        /* ... add the rest of your padding/margins here ... */
+    }
+
+    /* 2. DARK MODE OVERRIDE */
+    /* If the browser detects Dark Mode, it swaps to these colors instead */
+    @media (prefers-color-scheme: dark) {
+        .your-podium-class {
+            background-color: #262730; /* Your original sleek dark grey */
+            color: #FFFFFF; /* White text */
         }
     }
     
