@@ -167,7 +167,7 @@ st.markdown("""
 # CONFIGURATION & DATA LOADING
 # ----------------------------------------------------------------------
 # This is your live Dropbox link with dl=1 at the end!
-DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/tpe7i2bigitq60e26azib/10000-Beers-Log.xlsx?rlkey=sjpkb7is0iqnvxgn67lemu93i&st=6l44nkqh&dl=1"
+DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/m69ohs691eb8zbkdzsg9z/10000-beers-log.xlsx?rlkey=n7buk0hfmsubo7ivkz6qyf97s&st=2bxhuavf&dl=1"
 MACRO_GOAL = 10000
 
 @st.cache_data(ttl=300,show_spinner="Fetching fresh beers...")  # Cache data for 5 mins to prevent constant reloading
