@@ -129,19 +129,6 @@ st.markdown("""
         }
     }
     
-    /* LIGHT MODE OVERRIDES FOR PODIUM */
-    @media (prefers-color-scheme: light) {
-        .podium-box {
-            background-color: #f0f2f6 !important;
-            border: 1px solid #d0d3d9 !important;
-        }
-        .podium-name {
-            color: #262730 !important;
-        }
-        .podium-score {
-            color: #555 !important;
-        }
-    }
     </style>
 """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------
@@ -436,7 +423,29 @@ with tab1:
     with col_right:
         # -- PIE CHART --
         st.subheader("Percentage Contribution")
-        fig_pie = px.pie(leaderboard, values='Number of Beers', names='Beer Owner', template="plotly_dark", hole=0.3)
+
+        # Map each person's name to a specific hex color
+        custom_colors = {
+            "Tom": "#FFBA00",
+            "Logan": "#D80030",
+            "Archie": "#FF8A00",
+            "Mills": "#00D5A0",
+            "JJ": "#3461EF",
+            "Moo": "#6DCFBA",
+            "KSI": "#8936B6",
+            "Ashton": "#A871FF",
+            "Sam": "#E50184",
+        }
+
+        fig_pie = px.pie(
+            leaderboard,
+            values='Number of Beers',
+            names='Beer Owner',
+            template="plotly_dark",
+            hole=0.3,
+            color='Beer Owner',
+            color_discrete_map=custom_colors
+        )
         fig_pie.update_traces(textposition='inside', textinfo='percent+label')
         fig_pie.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=False)
         st.plotly_chart(fig_pie, use_container_width=True)
