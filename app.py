@@ -131,7 +131,7 @@ st.markdown("""
     /* 1. DEFAULT (LIGHT MODE) */
     /* This will be used when the user is in Light Mode */
     .your-podium-class {
-        background-color: #1e1e1e; /* A nice visible light grey */
+        background-color: #f0f2f6; /* A nice visible light grey */
         color: #31333F; /* Dark text for contrast */
         border-radius: 10px; /* Keep your existing rounded corners! */
         /* ... add the rest of your padding/margins here ... */
@@ -141,7 +141,7 @@ st.markdown("""
     /* If the browser detects Dark Mode, it swaps to these colors instead */
     @media (prefers-color-scheme: dark) {
         .your-podium-class {
-            background-color: #262730; /* Your original sleek dark grey */
+            background-color: #1e1e1e; /* Your original sleek dark grey */
             color: #FFFFFF; /* White text */
         }
     }
