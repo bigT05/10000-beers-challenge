@@ -262,9 +262,7 @@ with st.sidebar:
 # ----------------------------------------------------------------------
 st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h1>", unsafe_allow_html=True)
 
-st.divider()
-
-tab1, tab2 = st.tabs(["📊 Dashboard", "📋 Full Beer List"])
+tab1, tab2 = st.tabs(["Summary", "Full Beer List"])
 
 with tab1:
 
