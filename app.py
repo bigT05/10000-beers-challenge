@@ -128,6 +128,20 @@ st.markdown("""
             font-size: 0.85rem !important;
         }
     }
+    
+    /* LIGHT MODE OVERRIDES FOR PODIUM */
+    @media (prefers-color-scheme: light) {
+        .podium-box {
+            background-color: #f0f2f6 !important;
+            border: 1px solid #d0d3d9 !important;
+        }
+        .podium-name {
+            color: #262730 !important;
+        }
+        .podium-score {
+            color: #555 !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 # ----------------------------------------------------------------------
