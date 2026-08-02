@@ -314,20 +314,19 @@ with tab1:
     total_beers = len(df)
     progress_pct = total_beers / BEER_GOAL
 
-    # Extrapolation Logic
+    # extrapolation logic
     first_beer_time = df['Datetime'].min()
-    now_time = datetime.now(timezone.utc)
-    days_elapsed = (now_time - first_beer_time).total_seconds() / 86400
+    current_time = datetime.now(timezone.utc)
+    days_elapsed = (current_time - first_beer_time).total_seconds() / 86400
 
     if days_elapsed > 0:
         beers_per_day = total_beers / days_elapsed
         beers_left = BEER_GOAL - total_beers
         days_left = beers_left / beers_per_day
-        eta_date = now_time + pd.Timedelta(days=days_left)
+        eta_date = current_time + pd.Timedelta(days=days_left)
 
-        # Pass the raw date object into our new function here!
+        # pass the raw date object into the custom formatting function
         eta_str = format_custom_date(eta_date)
-
         velocity_str = f"{beers_per_day:.1f} beers/day"
     else:
         eta_str = "TBD"
@@ -335,6 +334,7 @@ with tab1:
 
     st.subheader("Beer Progress Bar")
     st.progress(min(progress_pct, 1.0))
+
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
     col2.metric("Current Flow of Beer", velocity_str)
@@ -345,40 +345,39 @@ with tab1:
 
     # --- SECTION 2: LEADERBOARD & PIE CHART ---
 
-    # Quick helper function to generate 4th, 5th, etc. for the table
-    def get_ordinal(n):
-        if 11 <= (n % 100) <= 13:
-            return str(n) + "th"
-        return str(n) + {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    # quick helper function to generate 4th, 5th, etc. for the table
+    def get_ordinal(rank_num):
+        if 11 <= (rank_num % 100) <= 13:
+            return str(rank_num) + "th"
+        return str(rank_num) + {1: "st", 2: "nd", 3: "rd"}.get(rank_num % 10, "th")
 
 
-    # col_left is slightly wider to give the podium and table room to breathe
+    # left column is slightly wider to give the podium and table room to breathe
     col_left, col_right = st.columns([3, 2], gap="large")
 
     with col_left:
         st.subheader("All-Time Leaderboard 🏆")
 
-        # Calculate Leaderboard totals
-        leaderboard = df['Beer Owner'].value_counts().reset_index()
-        leaderboard.columns = ['Beer Owner', 'Number of Beers']
+        # calculate leaderboard totals
+        leaderboard_df = df['Beer Owner'].value_counts().reset_index()
+        leaderboard_df.columns = ['Beer Owner', 'Number of Beers']
 
-        # Calculate total days the challenge has been running
-        total_days = max(1, (pd.Timestamp.now(tz='UTC') - df['Datetime'].min()).days)
-        leaderboard['Beers / Day'] = (leaderboard['Number of Beers'] / total_days).round(1)
+        # calculate total days the challenge has been running
+        total_running_days = max(1, (pd.Timestamp.now(tz='UTC') - df['Datetime'].min()).days)
+        leaderboard_df['Beers / Day'] = (leaderboard_df['Number of Beers'] / total_running_days).round(1)
 
-        # Extract Top 3 data safely
-        top_3_names = leaderboard['Beer Owner'].head(3).tolist()
-        top_3_scores = leaderboard['Number of Beers'].head(3).tolist()
-        top_3_bpd = leaderboard['Beers / Day'].head(3).tolist()
+        # extract top 3 data safely
+        top_3_names = leaderboard_df['Beer Owner'].head(3).tolist()
+        top_3_scores = leaderboard_df['Number of Beers'].head(3).tolist()
+        top_3_bpd = leaderboard_df['Beers / Day'].head(3).tolist()
 
-        # Pad with blanks if fewer than 3 people have drank so far
+        # pad with blanks if fewer than 3 people have drank so far
         while len(top_3_names) < 3:
             top_3_names.append("N/A")
             top_3_scores.append(0)
             top_3_bpd.append(0.0)
 
-        # -- THE TOP 3 PODIUM (HTML STYLE) --
-        # vertical_alignment="bottom" ensures they all sit on the exact same baseline!
+        # vertical_alignment="bottom" ensures they all sit on the exact same baseline
         with st.container(key="podium_container"):
             pod1, pod2, pod3 = st.columns(3, vertical_alignment="bottom")
 
@@ -415,29 +414,24 @@ with tab1:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # -- THE CONTENDERS (4th place onward) --
-        # st.markdown("#### The Contenders")
-        if len(leaderboard) > 3:
-            rest_of_pack = leaderboard.iloc[3:].copy()
+        # --- THE CONTENDERS (4TH PLACE ONWARD) ---
+        if len(leaderboard_df) > 3:
+            rest_of_pack = leaderboard_df.iloc[3:].copy()
 
-            # Apply the ordinal function to create a "Rank" column
+            # apply the ordinal function to create a rank column
             rest_of_pack['Rank'] = [get_ordinal(i + 4) for i in range(len(rest_of_pack))]
 
-            # Reorder the dataframe columns so 'Rank' is first
+            # reorder the dataframe columns
             rest_of_pack = rest_of_pack[['Rank', 'Beer Owner', 'Number of Beers', 'Beers / Day']]
 
-            st.dataframe(
-                rest_of_pack,
-                use_container_width=True,
-                hide_index=True
-            )
+            st.dataframe(rest_of_pack, use_container_width=True, hide_index=True)
 
     with col_right:
-        # -- PIE CHART --
+        # --- PIE CHART ---
         st.subheader("Percentage Contribution")
 
-        # Map each person's name to a specific hex color
-        custom_colors = {
+        # map each person's name to a specific hex color
+        custom_pie_colors = {
             "Tom": "#FFBA00",
             "Logan": "#D80030",
             "Archie": "#FF8A00",
@@ -450,13 +444,13 @@ with tab1:
         }
 
         fig_pie = px.pie(
-            leaderboard,
+            leaderboard_df,
             values='Number of Beers',
             names='Beer Owner',
             template="plotly_dark",
             hole=0.3,
             color='Beer Owner',
-            color_discrete_map=custom_colors
+            color_discrete_map=custom_pie_colors
         )
         fig_pie.update_traces(textposition='inside', textinfo='percent+label')
         fig_pie.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=False)
@@ -464,25 +458,19 @@ with tab1:
 
         st.divider()
 
-        # -- TOP 3 LAST 30 DAYS --
+        # --- TOP 3 LAST 30 DAYS ---
         st.subheader("Last 30 Days: Top 3")
 
-        # Filter data for the last 30 days
-        now = pd.Timestamp.now(tz='UTC')
-        last_month_start = now - pd.DateOffset(days=30)
-        last_month_df = df[df['Datetime'] >= last_month_start]
+        thirty_days_ago = pd.Timestamp.now(tz='UTC') - pd.DateOffset(days=30)
+        last_month_df = df[df['Datetime'] >= thirty_days_ago]
 
         if not last_month_df.empty:
             last_month_lb = last_month_df['Beer Owner'].value_counts().reset_index()
             last_month_lb.columns = ['Beer Owner', 'Number of Beers']
 
-            # Isolate the top 3 and make a copy to edit safely
+            # isolate the top 3 safely
             top_3_lm = last_month_lb.head(3).copy()
-
-            # Apply the ordinal function (1st, 2nd, 3rd)
             top_3_lm['Rank'] = [get_ordinal(i + 1) for i in range(len(top_3_lm))]
-
-            # Reorder columns so Rank is first
             top_3_lm = top_3_lm[['Rank', 'Beer Owner', 'Number of Beers']]
 
             st.dataframe(top_3_lm, use_container_width=True, hide_index=True)
@@ -491,16 +479,17 @@ with tab1:
 
     st.divider()
 
-    # --- SECTION 3: LINE CHART + DAILY VOLUME CALENDAR ---
+    # --- SECTION 3: LINE CHART & DAILY VOLUME CALENDAR ---
 
     col_line, col_cal = st.columns([3, 2], gap="large")
 
     with col_line:
-        # Cumulative Line Chart
+        # cumulative line chart
         st.subheader("Cumulative Beers Over Time")
-        df_daily = df.set_index('Datetime').resample('D').size().cumsum().reset_index()
-        df_daily.columns = ['Date', 'Total Beers']
-        fig_line = px.line(df_daily, x='Date', y='Total Beers', template="plotly_dark")
+        daily_counts_df = df.set_index('Datetime').resample('D').size().cumsum().reset_index()
+        daily_counts_df.columns = ['Date', 'Total Beers']
+
+        fig_line = px.line(daily_counts_df, x='Date', y='Total Beers', template="plotly_dark")
         fig_line.update_traces(line_color='#28a745', line_width=3)
         fig_line.update_layout(margin=dict(l=0, r=0, t=30, b=0), xaxis_title="", yaxis_title="", height=320)
         st.plotly_chart(fig_line, use_container_width=True)
@@ -509,64 +498,66 @@ with tab1:
         st.subheader("Daily Volume")
 
 
-        def build_calendar_data(df):
-            """Builds a Mon-Sun x Week grid of daily beer counts."""
-            daily_counts = df.groupby(df['Datetime'].dt.date).size()
+        def build_calendar_data(input_df):
+            """builds a mon-sun x week grid of daily beer counts."""
+            daily_series = input_df.groupby(input_df['Datetime'].dt.date).size()
 
-            today = datetime.now(timezone.utc).date()
-            start_date = daily_counts.index.min()
+            today_date = datetime.now(timezone.utc).date()
+            start_dt = daily_series.index.min()
 
-            pad_start = start_date - pd.Timedelta(days=start_date.weekday())
-            pad_end = today + pd.Timedelta(days=(6 - today.weekday()))
-            full_range = pd.date_range(pad_start, pad_end, freq='D')
+            pad_start_dt = start_dt - pd.Timedelta(days=start_dt.weekday())
+            pad_end_dt = today_date + pd.Timedelta(days=(6 - today_date.weekday()))
+            full_date_range = pd.date_range(pad_start_dt, pad_end_dt, freq='D')
 
-            n_weeks = len(full_range) // 7
-            z = [[None] * n_weeks for _ in range(7)]
-            hover = [[""] * n_weeks for _ in range(7)]
-            month_labels = {}
+            total_weeks = len(full_date_range) // 7
+            z_grid = [[None] * total_weeks for _ in range(7)]
+            hover_text = [[""] * total_weeks for _ in range(7)]
+            months_dict = {}
 
-            last_month = None
-            for i, d in enumerate(full_range):
-                week_idx = i // 7
-                day_idx = d.weekday()
-                date_only = d.date()
+            last_month_str = None
+            for idx, d_obj in enumerate(full_date_range):
+                w_idx = idx // 7
+                d_idx = d_obj.weekday()
+                d_only = d_obj.date()
 
-                if date_only > today or date_only < start_date:
-                    val = None  # future OR before the challenge started -> hidden
+                # hide future dates or dates before the challenge started
+                if d_only > today_date or d_only < start_dt:
+                    val = None
                 else:
-                    val = int(daily_counts.get(date_only, 0))
+                    val = int(daily_series.get(d_only, 0))
 
-                z[day_idx][week_idx] = val
-                beer_word = "beer" if val == 1 else "beers"
-                hover[day_idx][week_idx] = (
-                    f"{d.strftime('%a %d %b %Y')}<br>"
-                    f"{'No data yet' if val is None else f'{val} {beer_word}'}"
+                z_grid[d_idx][w_idx] = val
+                beer_label = "beer" if val == 1 else "beers"
+                hover_text[d_idx][w_idx] = (
+                    f"{d_obj.strftime('%a %d %b %Y')}<br>"
+                    f"{'No data yet' if val is None else f'{val} {beer_label}'}"
                 )
 
-                if d.day == 1 or i == 0:
-                    if d.strftime('%b') != last_month:
-                        month_labels[week_idx] = d.strftime('%b')
-                        last_month = d.strftime('%b')
+                if d_obj.day == 1 or idx == 0:
+                    if d_obj.strftime('%b') != last_month_str:
+                        months_dict[w_idx] = d_obj.strftime('%b')
+                        last_month_str = d_obj.strftime('%b')
 
-            today_pos = None
-            for i, d in enumerate(full_range):
-                if d.date() == today:
-                    today_pos = (i % 7, i // 7)
+            current_today_pos = None
+            for idx, d_obj in enumerate(full_date_range):
+                if d_obj.date() == today_date:
+                    current_today_pos = (idx % 7, idx // 7)
                     break
 
-            return z, hover, month_labels, n_weeks, today_pos, daily_counts
+            return z_grid, hover_text, months_dict, total_weeks, current_today_pos, daily_series
 
 
-        z, hover, month_labels, n_weeks, today_pos, daily_counts = build_calendar_data(df)
+        # generate calendar data
+        z_data, hover_data, month_labels, num_weeks, today_position, raw_daily_counts = build_calendar_data(df)
         day_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-        max_count = max(1, daily_counts.max())
-        epsilon = 0.001
+        max_daily_count = max(1, raw_daily_counts.max())
+        eps = 0.001
 
-        colorscale = [
+        heatmap_colors = [
             [0.0, "#161b22"],
-            [epsilon, "#161b22"],
-            [epsilon, "#0e4429"],
+            [eps, "#161b22"],
+            [eps, "#0e4429"],
             [0.35, "#006d32"],
             [0.6, "#26a641"],
             [0.8, "#39d353"],
@@ -574,23 +565,18 @@ with tab1:
         ]
 
         fig_cal = go.Figure(data=go.Heatmap(
-            z=z,
-            x=list(range(n_weeks)),
+            z=z_data,
+            x=list(range(num_weeks)),
             y=day_labels,
-            text=hover,
+            text=hover_data,
             hoverinfo='text',
-            colorscale=colorscale,
+            colorscale=heatmap_colors,
             zmin=0,
-            zmax=max_count,
+            zmax=max_daily_count,
             xgap=3,
             ygap=3,
             showscale=True,
-            colorbar=dict(
-                title="Beers",
-                thickness=10,
-                len=0.5,
-                tickmode='array',
-            ),
+            colorbar=dict(title="Beers", thickness=10, len=0.5, tickmode='array'),
         ))
 
         fig_cal.update_layout(
@@ -608,12 +594,13 @@ with tab1:
             yaxis=dict(showgrid=False, autorange='reversed', tickfont=dict(size=10)),
         )
 
-        if today_pos:
-            day_idx, week_idx = today_pos
+        # outline the current day
+        if today_position:
+            day_coord, week_coord = today_position
             fig_cal.add_shape(
                 type="rect",
-                x0=week_idx - 0.5, x1=week_idx + 0.5,
-                y0=day_idx - 0.5, y1=day_idx + 0.5,
+                x0=week_coord - 0.5, x1=week_coord + 0.5,
+                y0=day_coord - 0.5, y1=day_coord + 0.5,
                 line=dict(color="white", width=2),
             )
 
@@ -625,18 +612,20 @@ with tab1:
 
     col_time1, col_time2 = st.columns(2)
 
+    # create a localized copy of df to prevent adding temporary columns to the main dataset
+    temporal_df = df.copy()
+
     with col_time1:
-        # --- PEAK BEER TIMES CHART ---
         st.subheader("Peak Beer Times (UTC)")
 
-        # 1. Define the exact order you want the x-axis to follow (5 AM to 4 AM)
+        # define the exact order for the x-axis (5 AM to 4 AM)
         custom_hour_order = [
             "5 AM", "6 AM", "7 AM", "8 AM", "9 AM", "10 AM", "11 AM", "12 PM",
             "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM",
             "9 PM", "10 PM", "11 PM", "12 AM", "1 AM", "2 AM", "3 AM", "4 AM"
         ]
 
-        # 2. Create a mapping dictionary to convert the 0-23 military time to our labels
+        # create a mapping dictionary to convert 0-23 military time to friendly labels
         hour_mapping = {
             5: "5 AM", 6: "6 AM", 7: "7 AM", 8: "8 AM", 9: "9 AM", 10: "10 AM", 11: "11 AM",
             12: "12 PM", 13: "1 PM", 14: "2 PM", 15: "3 PM", 16: "4 PM", 17: "5 PM", 18: "6 PM",
@@ -644,23 +633,21 @@ with tab1:
             1: "1 AM", 2: "2 AM", 3: "3 AM", 4: "4 AM"
         }
 
-        # 3. Extract the hour from your Datetime and map it to the friendly labels
-        df['Hour_Num'] = df['Datetime'].dt.hour
-        df['Hour_Label'] = df['Hour_Num'].map(hour_mapping)
+        # extract the hour and map it
+        temporal_df['Hour_Label'] = temporal_df['Datetime'].dt.hour.map(hour_mapping)
 
-        # 4. Count the beers per hour
-        hourly_counts = df['Hour_Label'].value_counts().reset_index()
-        hourly_counts.columns = ['Time', 'Beers']
+        # count beers per hour
+        hourly_counts_df = temporal_df['Hour_Label'].value_counts().reset_index()
+        hourly_counts_df.columns = ['Time', 'Beers']
 
-        # 5. Build the chart, forcing the x-axis to use our custom_hour_order
+        # build the chart forcing the custom x-axis order
         fig_hours = px.bar(
-            hourly_counts,
+            hourly_counts_df,
             x='Time',
             y='Beers',
-            category_orders={"Time": custom_hour_order}  # THIS IS THE MAGIC LINE
+            category_orders={"Time": custom_hour_order}
         )
 
-        # Optional: Make it look clean and green to match the rest of your app
         fig_hours.update_traces(marker_color='#28a745')
         fig_hours.update_layout(xaxis_title="Hour of Day", yaxis_title="Total Beers")
 
@@ -668,36 +655,39 @@ with tab1:
 
     with col_time2:
         st.subheader("Peak Beer Days (UTC)")
-        # Group by Day of Week and enforce order Mon-Sun
-        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        df['Day'] = df['Datetime'].dt.day_name()
-        day_counts = df['Day'].value_counts().reindex(days_order, fill_value=0).reset_index()
-        day_counts.columns = ['Day', 'Count']
 
-        fig_days = px.bar(day_counts, x='Day', y='Count', template="plotly_dark")
+        # group by day of week and enforce monday-sunday order
+        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        temporal_df['Day'] = temporal_df['Datetime'].dt.day_name()
+
+        day_counts_df = temporal_df['Day'].value_counts().reindex(days_order, fill_value=0).reset_index()
+        day_counts_df.columns = ['Day', 'Count']
+
+        fig_days = px.bar(day_counts_df, x='Day', y='Count', template="plotly_dark")
         fig_days.update_traces(marker_color='#28a745')
         fig_days.update_layout(xaxis_title="Day of Week", yaxis_title="Total Beers")
         st.plotly_chart(fig_days, use_container_width=True)
 
 with tab2:
+    # --- SECTION 5: FULL BEER LIST ---
     st.subheader("Beer List")
 
-    full_list = df.sort_values(by="Datetime", ascending=False).copy()
-    full_list = full_list.reset_index(drop=True)
+    full_beers_list = df.sort_values(by="Datetime", ascending=False).copy()
+    full_beers_list = full_beers_list.reset_index(drop=True)
 
-    # Assign directly (overwrites if it somehow already exists, never raises)
-    full_list["Beer #"] = range(len(full_list), 0, -1)
+    # assign reverse index (overwrites if it somehow already exists)
+    full_beers_list["Beer #"] = range(len(full_beers_list), 0, -1)
 
-    full_list['Date'] = full_list['Datetime'].dt.strftime('%d %b %Y')
-    full_list['Time (UTC)'] = full_list['Datetime'].dt.strftime('%H:%M')
+    full_beers_list['Date'] = full_beers_list['Datetime'].dt.strftime('%d %b %Y')
+    full_beers_list['Time (UTC)'] = full_beers_list['Datetime'].dt.strftime('%H:%M')
 
-    display_df = full_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
+    final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
 
     st.dataframe(
-        display_df,
+        final_display_df,
         use_container_width=True,
         hide_index=True,
         height=700
     )
 
-    st.caption(f"Showing {len(display_df):,} of {len(full_list):,} total beers")
+    st.caption(f"Showing {len(final_display_df):,} of {len(full_beers_list):,} total beers")
