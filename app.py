@@ -268,36 +268,38 @@ def format_custom_date(input_dt):
 # ----------------------------------------------------------------------
 # SIDEBAR: FEED & STATUS
 # ----------------------------------------------------------------------
+
 with st.sidebar:
-    # (Optional) If you still have your Breakfast Boys logo image code here, leave it at the top!
-
-    st.image("profile.jpg", clamp=True)  # Placeholder logo
+    # profile logo header
+    st.image("profile.jpg", clamp=True)
 
     st.divider()
 
-    # --- 1. RECENT CHECK-INS ---
+    # --- RECENT CHECK-INS ---
     st.subheader("Recent Beers* 🍺", anchor=False)
-    recent_beers = df.sort_values(by="Datetime", ascending=False).head(10)
-    for _, row in recent_beers.iterrows():
-        # If the date/time was missing in Excel, display "recently"
-        if row.get('Is_Fallback_Time', False):
-            time_display = "recently"
-        else:
-            time_display = time_ago(row['Datetime'])
 
-        st.markdown(f"**{row['Beer Owner']}** - *{time_display}*")
+    recent_beers_df = df.sort_values(by="Datetime", ascending=False).head(10)
+
+    for _, beer_row in recent_beers_df.iterrows():
+        # if the date/time was missing in excel, display "recently"
+        if beer_row.get('Is_Fallback_Time', False):
+            display_time = "recently"
+        else:
+            display_time = time_ago(beer_row['Datetime'])
+
+        st.markdown(f"**{beer_row['Beer Owner']}** - *{display_time}*")
 
     st.divider()
 
-    # --- 2. SYSTEM STATUS (Moved to bottom) ---
+    # --- SYSTEM STATUS ---
     st.subheader("System Status")
-    st.info(f"***Last Spreadsheet Update:**\n\n*{time_ago(manual_sync_dt)}*")
+    st.info(f"**Last Spreadsheet Update:**\n\n*{time_ago(manual_sync_dt)}*")
     st.success(f"**Last Time Sync:**\n\n*{time_ago(last_sync_dt)}*")
 
-    # REFRESH BUTTON
+    # database refresh button
     if st.button("Reload Database", use_container_width=True):
-        st.cache_data.clear()  # This deletes the frozen 5-minute data
-        st.rerun()  # This instantly reloads the page with fresh data
+        st.cache_data.clear()  # clears cached database call
+        st.rerun()  # reloads the streamlit app state
 
 # ----------------------------------------------------------------------
 # MAIN DASHBOARD
