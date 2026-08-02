@@ -222,45 +222,47 @@ if df.empty:
 # ----------------------------------------------------------------------
 # HELPER FUNCTIONS
 # ----------------------------------------------------------------------
+
 def time_ago(timestamp):
-    """Converts a datetime into a relative 'time ago' string."""
+    """converts a datetime into a relative 'time ago' string."""
     if pd.isna(timestamp):
         return "Never"
 
-    now = datetime.now(timezone.utc)
-    diff = now - timestamp
-    seconds = diff.total_seconds()
+    current_utc = datetime.now(timezone.utc)
+    time_diff = current_utc - timestamp
+    total_secs = time_diff.total_seconds()
 
-    if seconds < 60:
-        return f"{int(max(0, seconds))} secs ago"
-    elif seconds < 3600:
-        mins = int(seconds // 60)
+    if total_secs < 60:
+        return f"{int(max(0, total_secs))} secs ago"
+    elif total_secs < 3600:
+        mins = int(total_secs // 60)
         return f"{mins} min{'s' if mins > 1 else ''} ago"
-    elif seconds < 86400:
-        hours = int(seconds // 3600)
+    elif total_secs < 86400:
+        hours = int(total_secs // 3600)
         return f"{hours} hour{'s' if hours > 1 else ''} ago"
     else:
-        days = int(seconds // 86400)
+        days = int(total_secs // 86400)
         return f"{days} day{'s' if days > 1 else ''} ago"
 
 
-def format_custom_date(dt):
-    """Converts a datetime object to '7th September 2029' format"""
-    if pd.isna(dt):
+def format_custom_date(input_dt):
+    """converts a datetime object to a '7th September 2029' format."""
+    if pd.isna(input_dt):
         return "Unknown"
 
-    day = dt.day
-    # Figure out the st, nd, rd, th
-    if 11 <= (day % 100) <= 13:
-        suffix = "th"
+    dt_day = input_dt.day
+
+    # figure out the st, nd, rd, th suffix
+    if 11 <= (dt_day % 100) <= 13:
+        day_suffix = "th"
     else:
-        suffix = {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+        day_suffix = {1: "st", 2: "nd", 3: "rd"}.get(dt_day % 10, "th")
 
     # %B gets the full capitalized month name (e.g., 'September')
-    month = dt.strftime('%B')
-    year = dt.year
+    dt_month = input_dt.strftime('%B')
+    dt_year = input_dt.year
 
-    return f"{day}{suffix} {month} {year}"
+    return f"{dt_day}{day_suffix} {dt_month} {dt_year}"
 
 
 # ----------------------------------------------------------------------
