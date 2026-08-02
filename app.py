@@ -169,7 +169,8 @@ DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/m69ohs691eb8zbkdzsg9z/10000
 # Beer goal
 BEER_GOAL = 10000
 
-@st.cache_data(ttl=300,show_spinner="Fetching fresh beers...")  # Cache data for 5 mins to prevent constant reloading
+
+@st.cache_data(ttl=300, show_spinner="Fetching fresh beers...")  # Cache data for 5 mins to prevent constant reloading
 def load_data():
     try:
         # Load Main Beers List directly from Dropbox
@@ -224,7 +225,7 @@ def load_data():
         # Mark which rows are missing timestamps
         df['Is_Fallback_Time'] = df['Date of Beer (UTC)'].isna() | df['Time of Beer (UTC)'].isna()
 
-        # Fallback fallback: if metadata is missing, use current UTC time
+        # Fallback: if metadata is missing, use current UTC time
         fallback_dt = manual_sync_dt if pd.notna(manual_sync_dt) else datetime.now(timezone.utc)
         fallback_date_str = fallback_dt.strftime('%d/%m/%Y')
         fallback_time_str = fallback_dt.strftime('%H:%M:%S')
@@ -262,12 +263,14 @@ def load_data():
         st.error(f"Error loading data: {e}")
         return pd.DataFrame(), pd.NaT, pd.NaT
 
+
 df, last_sync_dt, manual_sync_dt = load_data()
 
 # Stop execution if data is empty
 if df.empty:
     st.warning("No data found. Please check your Excel file.")
     st.stop()
+
 
 # ----------------------------------------------------------------------
 # HELPER FUNCTIONS
@@ -312,6 +315,7 @@ def format_custom_date(dt):
 
     return f"{day}{suffix} {month} {year}"
 
+
 # ----------------------------------------------------------------------
 # SIDEBAR: FEED & STATUS
 # ----------------------------------------------------------------------
@@ -354,7 +358,6 @@ st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h
 tab1, tab2 = st.tabs(["Summary", "Full Beer List"])
 
 with tab1:
-
     # --- SECTION 1: BEER PROGRESS CHART ---
 
     total_beers = len(df)
@@ -387,7 +390,6 @@ with tab1:
     col3.metric("Estimated Finish Date", eta_str)
 
     st.divider()
-
 
     # --- SECTION 2: LEADERBOARD & PIE CHART ---
 
@@ -462,7 +464,7 @@ with tab1:
         st.markdown("<br>", unsafe_allow_html=True)
 
         # -- THE CONTENDERS (4th place onward) --
-        #st.markdown("#### The Contenders")
+        # st.markdown("#### The Contenders")
         if len(leaderboard) > 3:
             rest_of_pack = leaderboard.iloc[3:].copy()
 
@@ -536,6 +538,7 @@ with tab1:
             st.info("No beers logged in the last 30 days.")
 
     st.divider()
+
     # --- SECTION 3: LINE CHART + DAILY VOLUME CALENDAR ---
 
     col_line, col_cal = st.columns([3, 2], gap="large")
@@ -552,6 +555,7 @@ with tab1:
 
     with col_cal:
         st.subheader("Daily Volume")
+
 
         def build_calendar_data(df):
             """Builds a Mon-Sun x Week grid of daily beer counts."""
@@ -665,37 +669,8 @@ with tab1:
 
     st.divider()
 
-    # --- SECTION 4: LAST MONTH ---
+    # --- SECTION 4: TEMPORAL ANALYTICS ---
 
-    #
-    # # Last Month's Top 3 Podium
-    # st.subheader("Last Month's Top 3 Beer Drinkers")
-    # last_month = datetime.now(timezone.utc) - relativedelta(months=1)
-    # lm_df = df[(df['Datetime'].dt.month == last_month.month) & (df['Datetime'].dt.year == last_month.year)]
-    #
-    # if not lm_df.empty:
-    #     lm_leaderboard = lm_df['Beer Owner'].value_counts()
-    #     top_3 = lm_leaderboard.head(3).index.tolist()
-    #     counts = lm_leaderboard.head(3).tolist()
-    #
-    #     # Pad with blanks if fewer than 3 people drank last month
-    #     while len(top_3) < 3:
-    #         top_3.append("N/A")
-    #         counts.append(0)
-    #
-    #     pod1, pod2, pod3 = st.columns(3)
-    #     with pod1:
-    #         st.markdown(f"<div class='podium-box second-place'><div class='podium-title'>2nd 🥈</div><div class='podium-name'>{top_3[1]}</div><div class='podium-score'>{counts[1]} beers</div></div>", unsafe_allow_html=True)
-    #     with pod2:
-    #         st.markdown(f"<div class='podium-box first-place'><div class='podium-title'>1st 🥇</div><div class='podium-name'>{top_3[0]}</div><div class='podium-score'>{counts[0]} beers</div></div>", unsafe_allow_html=True)
-    #     with pod3:
-    #         st.markdown(f"<div class='podium-box third-place'><div class='podium-title'>3rd 🥉</div><div class='podium-name'>{top_3[2]}</div><div class='podium-score'>{counts[2]} beers</div></div>", unsafe_allow_html=True)
-    # else:
-    #     st.info("No beers were logged last month to calculate a podium.")
-    #
-    # st.divider()
-
-    # --- SECTION 5: TEMPORAL ANALYTICS ---
     col_time1, col_time2 = st.columns(2)
 
     with col_time1:
@@ -751,7 +726,6 @@ with tab1:
         fig_days.update_traces(marker_color='#28a745')
         fig_days.update_layout(xaxis_title="Day of Week", yaxis_title="Total Beers")
         st.plotly_chart(fig_days, use_container_width=True)
-
 
 with tab2:
     st.subheader("Beer List")
