@@ -34,9 +34,11 @@ st.markdown("""
     [data-testid="stSidebarUserContent"] {
         padding-top: 0rem !important;
     }
-    /* Existing green bar styling */
-    .stProgress > div > div > div > div {
-        background-color: #28a745; 
+    /* BRUTE-FORCE PROGRESS BAR COLOR */
+    .stProgress > div > div > div > div,
+    [data-testid="stProgressBar"] > div > div,
+    div[role="progressbar"] > div > div {
+        background-color: #28a745 !important;
     }
     /* UPDATED PODIUM STYLING (No more h2/h3 tags) */
     .podium-box {
