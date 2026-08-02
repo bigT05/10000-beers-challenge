@@ -164,9 +164,10 @@ st.markdown("""
 # ----------------------------------------------------------------------
 # CONFIGURATION & DATA LOADING
 # ----------------------------------------------------------------------
-# This is your live Dropbox link with dl=1 at the end!
+# Live Dropbox link
 DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/m69ohs691eb8zbkdzsg9z/10000-beers-log.xlsx?rlkey=n7buk0hfmsubo7ivkz6qyf97s&st=2v1r6dop&dl=1"
-MACRO_GOAL = 10000
+# Beer goal
+BEER_GOAL = 10000
 
 @st.cache_data(ttl=300,show_spinner="Fetching fresh beers...")  # Cache data for 5 mins to prevent constant reloading
 def load_data():
@@ -357,7 +358,7 @@ with tab1:
     # --- SECTION 1: BEER PROGRESS CHART ---
 
     total_beers = len(df)
-    progress_pct = total_beers / MACRO_GOAL
+    progress_pct = total_beers / BEER_GOAL
 
     # Extrapolation Logic
     first_beer_time = df['Datetime'].min()
@@ -366,7 +367,7 @@ with tab1:
 
     if days_elapsed > 0:
         beers_per_day = total_beers / days_elapsed
-        beers_left = MACRO_GOAL - total_beers
+        beers_left = BEER_GOAL - total_beers
         days_left = beers_left / beers_per_day
         eta_date = now_time + pd.Timedelta(days=days_left)
 
@@ -381,7 +382,7 @@ with tab1:
     st.subheader("Beer Progress Bar")
     st.progress(min(progress_pct, 1.0))
     col1, col2, col3 = st.columns(3)
-    col1.metric("Total Beers So Far", f"{total_beers:,} / {MACRO_GOAL:,}")
+    col1.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
     col2.metric("Current Flow of Beer", velocity_str)
     col3.metric("Estimated Finish Date", eta_str)
 
