@@ -685,21 +685,13 @@ with tab2:
         lambda dt: "✓" if pd.notna(last_sync_dt) and dt <= last_sync_dt else ""
     )
 
-    # add the new column to the final display
     final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)', 'Sync']]
 
     st.dataframe(
         final_display_df,
         use_container_width=True,
         hide_index=True,
-        height=700,
-        column_config={
-            "Beer #": st.column_config.NumberColumn(width="small"),
-            "Beer Owner": st.column_config.TextColumn(width="large"),
-            "Date": st.column_config.TextColumn(width="medium"),
-            "Time (UTC)": st.column_config.TextColumn(width="medium"),
-            "Sync": st.column_config.TextColumn(width="small")
-        }
+        height=700
     )
 
     st.caption(f"Showing {len(final_display_df):,} of {len(full_beers_list):,} total beers")
