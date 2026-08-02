@@ -669,17 +669,44 @@ with tab1:
 
 with tab2:
     # --- SECTION 5: FULL BEER LIST ---
-    st.subheader("Beer List")
 
+    # 1. get the list of owners sorted by who has the most beers (descending)
+    owner_counts = df['Beer Owner'].value_counts()
+    sorted_owners = owner_counts.index.tolist()
+
+    # using unicode bold characters so it renders properly in the selectbox
+    filter_options = ["𝗔𝗹𝗹"] + sorted_owners
+
+    # 2. create two columns with the [2, 1] scale
+    col_title, col_filter = st.columns([2, 1], vertical_alignment="bottom")
+
+    with col_title:
+        st.subheader("Beer List")
+
+    with col_filter:
+        selected_owner = st.selectbox(
+            "Filter by Person:",
+            filter_options,
+            label_visibility="collapsed"
+        )
+
+    # 3. add a small gap between the title row and the table
+    st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+
+    # 4. establish the base chronological list to lock in the correct overall 'beer #'
     full_beers_list = df.sort_values(by="Datetime", ascending=False).copy()
     full_beers_list = full_beers_list.reset_index(drop=True)
-
-    # assign reverse index
     full_beers_list["Beer #"] = range(len(full_beers_list), 0, -1)
 
+    # 5. apply the filter if a specific person is selected (checking against the unicode string)
+    if selected_owner != "𝗔𝗹𝗹":
+        full_beers_list = full_beers_list[full_beers_list['Beer Owner'] == selected_owner]
+
+    # 6. format dates and times for display
     full_beers_list['Date'] = full_beers_list['Datetime'].dt.strftime('%d %b %Y')
     full_beers_list['Time (UTC)'] = full_beers_list['Datetime'].dt.strftime('%H:%M')
 
+    # 7. lock in the final columns
     final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
 
     st.dataframe(
@@ -689,4 +716,7 @@ with tab2:
         height=700
     )
 
-    st.caption(f"Showing {len(final_display_df):,} of {len(full_beers_list):,} total beers")
+    # dynamically update the caption to show how many beers are visible vs the overall total
+    st.caption(f"Showing {len(final_display_df):,} of {len(df):,} total beers")
+
+
