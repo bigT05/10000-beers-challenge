@@ -123,100 +123,88 @@ st.markdown("""
 # ----------------------------------------------------------------------
 # CONFIGURATION & DATA LOADING
 # ----------------------------------------------------------------------
-# Live Dropbox link
+
+# live Dropbox link
 DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/m69ohs691eb8zbkdzsg9z/10000-beers-log.xlsx?rlkey=n7buk0hfmsubo7ivkz6qyf97s&st=2v1r6dop&dl=1"
-# Beer goal
+# beer goal
 BEER_GOAL = 10000
 
 
-@st.cache_data(ttl=300, show_spinner="Fetching fresh beers...")  # Cache data for 5 mins to prevent constant reloading
+@st.cache_data(ttl=300, show_spinner="Fetching fresh beers...")  # cache data for 5 mins to prevent constant reloading
 def load_data():
     try:
-        # Load Main Beers List directly from Dropbox
-        df = pd.read_excel(DROPBOX_DIRECT_URL, sheet_name="Beers List", engine='openpyxl')
+        # load main beers list directly from dropbox
+        beers_df = pd.read_excel(DROPBOX_DIRECT_URL, sheet_name="Beers List", engine='openpyxl')
 
-        # Drop rows where Beer Owner is blank (instead of dropping blank dates)
-        df = df.dropna(subset=['Beer Owner'])
+        # drop rows where beer owner is blank
+        beers_df = beers_df.dropna(subset=['Beer Owner'])
 
-        # Load Metadata first so we know the last sync time for fallbacks
+        parsed_last_sync = pd.NaT
+        parsed_manual_sync = pd.NaT
+
+        # --- PARSE METADATA DATES ---
         try:
             meta_df = pd.read_excel(DROPBOX_DIRECT_URL, sheet_name="Metadata", header=None, engine='openpyxl')
 
-            # --- NEW HELPER FOR METADATA DATES ---
-            def fix_meta_date(val):
+            # unified helper to catch excel serial dates, native datetimes, and nans
+            def format_date_str(val):
                 if pd.isna(val):
                     return ""
-                # If Excel stored it as a serial number (e.g., 46235)
                 if isinstance(val, (int, float)):
                     return (pd.to_datetime('1899-12-30') + pd.Timedelta(days=val)).strftime('%d/%m/%Y')
-                # If Pandas read it natively as a Datetime object
-                from datetime import datetime
                 if isinstance(val, (pd.Timestamp, datetime)):
                     return val.strftime('%d/%m/%Y')
-                # Otherwise, treat as normal text
                 return str(val).strip()
 
-            # Parse Manual Timestamp (AppSheet)
-            manual_date = fix_meta_date(meta_df.iloc[1, 1])
+            # parse manual timestamp (AppSheet)
+            manual_date = format_date_str(meta_df.iloc[1, 1])
             manual_time = str(meta_df.iloc[1, 2]).strip()
-            manual_sync_dt = pd.to_datetime(f"{manual_date} {manual_time}", dayfirst=True, errors='coerce')
+            parsed_manual_sync = pd.to_datetime(f"{manual_date} {manual_time}", dayfirst=True, errors='coerce')
 
-            if pd.notna(manual_sync_dt):
-                manual_sync_dt = manual_sync_dt.replace(tzinfo=timezone.utc)
-            else:
-                manual_sync_dt = pd.NaT
+            if pd.notna(parsed_manual_sync):
+                parsed_manual_sync = parsed_manual_sync.replace(tzinfo=timezone.utc)
 
-            # Parse Snapchat/Sync Timestamp
-            sync_date = fix_meta_date(meta_df.iloc[2, 1])
+            # parse snapchat/sync timestamp
+            sync_date = format_date_str(meta_df.iloc[2, 1])
             sync_time = str(meta_df.iloc[2, 2]).strip()
-            last_sync_dt = pd.to_datetime(f"{sync_date} {sync_time}", dayfirst=True, errors='coerce')
+            parsed_last_sync = pd.to_datetime(f"{sync_date} {sync_time}", dayfirst=True, errors='coerce')
 
-            if pd.notna(last_sync_dt):
-                last_sync_dt = last_sync_dt.replace(tzinfo=timezone.utc)
-            else:
-                last_sync_dt = pd.NaT
+            if pd.notna(parsed_last_sync):
+                parsed_last_sync = parsed_last_sync.replace(tzinfo=timezone.utc)
 
         except Exception:
-            last_sync_dt = pd.NaT
-            manual_sync_dt = pd.NaT
+            pass  # metadata parsing failed, fallbacks will trigger below
 
-        # --- HANDLE MISSING DATES / TIMES ---
-        # Mark which rows are missing timestamps
-        df['Is_Fallback_Time'] = df['Date of Beer (UTC)'].isna() | df['Time of Beer (UTC)'].isna()
+        # --- HANDLE MISSING DATES AND TIMES ---
 
-        # Fallback: if metadata is missing, use current UTC time
-        fallback_dt = manual_sync_dt if pd.notna(manual_sync_dt) else datetime.now(timezone.utc)
-        fallback_date_str = fallback_dt.strftime('%d/%m/%Y')
-        fallback_time_str = fallback_dt.strftime('%H:%M:%S')
+        # mark which rows are missing timestamps
+        beers_df['Is_Fallback_Time'] = beers_df['Date of Beer (UTC)'].isna() | beers_df['Time of Beer (UTC)'].isna()
 
-        # Fill missing values
-        df['Date of Beer (UTC)'] = df['Date of Beer (UTC)'].fillna(fallback_date_str)
-        df['Time of Beer (UTC)'] = df['Time of Beer (UTC)'].fillna(fallback_time_str)
+        # fallback: if metadata is missing, use current UTC time
+        fallback_dt = parsed_manual_sync if pd.notna(parsed_manual_sync) else datetime.now(timezone.utc)
+
+        # fill missing values
+        beers_df['Date of Beer (UTC)'] = beers_df['Date of Beer (UTC)'].fillna(fallback_dt.strftime('%d/%m/%Y'))
+        beers_df['Time of Beer (UTC)'] = beers_df['Time of Beer (UTC)'].fillna(fallback_dt.strftime('%H:%M:%S'))
 
         # --- NORMALIZE MIXED FORMATS ---
-        # Helper to catch Excel serial dates (like 46235) and convert them to strings
-        def fix_excel_serial(val):
-            if isinstance(val, (int, float)):
-                # Excel's date epoch starts at Dec 30, 1899
-                return (pd.to_datetime('1899-12-30') + pd.Timedelta(days=val)).strftime('%d/%m/%Y')
-            return val
 
-        df['Date of Beer (UTC)'] = df['Date of Beer (UTC)'].apply(fix_excel_serial)
+        # apply the unified date format helper to the main dataframe
+        beers_df['Date of Beer (UTC)'] = beers_df['Date of Beer (UTC)'].apply(format_date_str)
 
-        normalized_dates = pd.to_datetime(df['Date of Beer (UTC)'], dayfirst=True, errors='coerce')
-        normalized_times = df['Time of Beer (UTC)'].astype(str)
-        df['Datetime'] = pd.to_datetime(
+        normalized_dates = pd.to_datetime(beers_df['Date of Beer (UTC)'], dayfirst=True, errors='coerce')
+        normalized_times = beers_df['Time of Beer (UTC)'].astype(str)
+
+        beers_df['Datetime'] = pd.to_datetime(
             normalized_dates.dt.strftime('%Y-%m-%d') + " " + normalized_times,
             errors='coerce'
         )
 
-        # Drop any failed conversions and sort chronologically
-        df = df.dropna(subset=['Datetime']).sort_values(by="Datetime").reset_index(drop=True)
+        # drop any failed conversions, sort chronologically, and apply UTC timezone
+        beers_df = beers_df.dropna(subset=['Datetime']).sort_values(by="Datetime").reset_index(drop=True)
+        beers_df['Datetime'] = beers_df['Datetime'].dt.tz_localize('UTC')
 
-        # Ensure UTC timezone awareness
-        df['Datetime'] = df['Datetime'].dt.tz_localize('UTC')
-
-        return df, last_sync_dt, manual_sync_dt
+        return beers_df, parsed_last_sync, parsed_manual_sync
 
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -225,7 +213,7 @@ def load_data():
 
 df, last_sync_dt, manual_sync_dt = load_data()
 
-# Stop execution if data is empty
+# stop execution if data is empty
 if df.empty:
     st.warning("No data found. Please check your Excel file.")
     st.stop()
@@ -349,6 +337,7 @@ with tab1:
     col3.metric("Estimated Finish Date", eta_str)
 
     st.divider()
+
 
     # --- SECTION 2: LEADERBOARD & PIE CHART ---
 
