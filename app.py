@@ -694,11 +694,11 @@ with tab2:
         hide_index=True,
         height=700,
         column_config={
-            "Beer #": st.column_config.NumberColumn(width=60),     # fixed small pixel width
-            "Beer Owner": st.column_config.TextColumn(width="large"), # stretches out large
-            "Date": st.column_config.TextColumn(width="medium"),      # medium width
-            "Time (UTC)": st.column_config.TextColumn(width="medium"),# medium width
-            "Sync": st.column_config.TextColumn(width=45)          # very small fixed pixel width
+            "Beer #": st.column_config.NumberColumn(width="small"),
+            "Beer Owner": st.column_config.TextColumn(width="large"),
+            "Date": st.column_config.TextColumn(width="medium"),
+            "Time (UTC)": st.column_config.TextColumn(width="medium"),
+            "Sync": st.column_config.TextColumn(width="small")
         }
     )
 
