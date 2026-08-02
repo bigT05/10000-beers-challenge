@@ -9,77 +9,42 @@ from datetime import datetime, timezone
 # ----------------------------------------------------------------------
 st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide")
 
-# Custom CSS for the Green Progress Bar, Podium, Page Padding, and Headers
+# custom css
 st.markdown("""
     <style>
-    /* UN-FIX THE MAIN HEADER AND MAKE IT TRANSPARENT */
+    /* header and sidebar transparency */
     header[data-testid="stHeader"] {
         position: absolute !important;
         background-color: transparent !important;
         z-index: 99999 !important;
     }
-    /* MAKE SIDEBAR HEADER TRANSPARENT BUT KEEP IT IN PLACE SO IT'S CLICKABLE */
     [data-testid="stSidebarHeader"] {
         background-color: transparent !important;
         padding-bottom: 0rem !important;
     }
-    /* THIS REMOVES THE GAP AT THE TOP OF THE MAIN PAGE */
-    .block-container {
-        padding-top: 2rem !important;
-    }
-    /* THIS REMOVES THE GAP AT THE TOP OF THE SIDEBAR */
-    section[data-testid="stSidebar"] > div:first-child {
-        padding-top: 0rem !important; 
-    }
+
+    /* remove padding gaps at the top of the main container and sidebar */
+    .block-container,
+    section[data-testid="stSidebar"] > div:first-child,
     [data-testid="stSidebarUserContent"] {
         padding-top: 0rem !important;
     }
-    /* BRUTE-FORCE PROGRESS BAR COLOR */
+
+    /* force custom color on the progress bar */
     .stProgress > div > div > div > div,
     [data-testid="stProgressBar"] > div > div,
     div[role="progressbar"] > div > div {
         background-color: #28a745 !important;
     }
-    /* UPDATED PODIUM STYLING (No more h2/h3 tags) */
-    .podium-box {
-        text-align: center;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #1e1e1e;
-        border: 1px solid #333;
-    }
-    .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
-    .second-place { border-top: 5px solid #C0C0C0; margin-top: 30px; }
-    .third-place { border-top: 5px solid #CD7F32; margin-top: 50px; }
-    /* New Custom Text Sizes to replace headers */
-    .podium-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
-    .podium-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
-    .podium-score { font-size: 1rem; color: #e0e0e0; margin: 0px; }
-    /* HIDE STREAMLIT HEADER ANCHOR LINKS */
-    a.header-anchor {
-        display: none !important;
-    }
-    /* HIDE STREAMLIT HEADER ANCHOR LINKS (BRUTE FORCE) */
-    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
-        display: none !important;
-    }
 
-    /* Just in case Streamlit is using an SVG icon wrapper */
+    /* hide all built-in streamlit header anchor links and svgs */
+    a.header-anchor,
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a,
     .stMarkdown a svg {
         display: none !important;
     }
-    /* REMOVES THE CURVED EDGES AND WHITE BORDER */
-    .stApp {
-        border: none !important;
-        border-radius: 0px !important;
-    }
 
-    /* Ensures no background bleed from the embed wrapper */
-    [data-testid="stAppViewContainer"] {
-        border: none !important;
-        border-radius: 0px !important;
-    }
-
+    /* remove curved edges, white borders, and shadows from the app container */
     #root > div:first-child,
     .stApp, 
     [data-testid="stAppViewContainer"], 
@@ -90,79 +55,71 @@ st.markdown("""
         outline: none !important;
     }
 
-    /* PODIUM REORDER - scoped ONLY to the podium container, desktop only */
-    @media (min-width: 641px) {
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) { order: 2; }
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) { order: 1; }
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] { display: flex !important; }
-    }
-    
-    /* PODIUM MOBILE COMPACT STYLING */
-    @media (max-width: 640px) {
-        /* Shrink the gap between stacked podium columns */
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] {
-            gap: 0.5rem !important;
-        }
-        .st-key-podium_container div[data-testid="column"] {
-            gap: 0.5rem !important;
-        }
+    /* --- podium styling --- */
 
-        /* Force all three podium boxes to the same, smaller height on mobile */
-        .st-key-podium_container .podium-box {
-            height: 140px !important;
-            padding: 12px !important;
-            margin-top: 10px !important;
-        }
-
-        /* Shrink text sizes to fit better on small screens */
-        .st-key-podium_container .podium-title {
-            font-size: 1.3rem !important;
-            margin-bottom: 4px !important;
-        }
-        .st-key-podium_container .podium-name {
-            font-size: 1.1rem !important;
-            margin-bottom: 4px !important;
-        }
-        .st-key-podium_container .podium-score {
-            font-size: 0.85rem !important;
-        }
-    }
-    
-    /* BULLETPROOF PODIUM STYLING (Works in every theme automatically) */
+    /* base podium box styling (auto-adapts to light/dark themes) */
     .podium-box {
         text-align: center;
         padding: 20px;
         border-radius: 10px;
-        
-        /* Tinted glass effect: 15% opacity grey */
         background-color: rgba(128, 128, 128, 0.15); 
-        
-        /* Slightly stronger grey for the border */
         border: 1px solid rgba(128, 128, 128, 0.3);
-        
-        /* Inherits whatever the current Streamlit text color is */
         color: var(--text-color, inherit); 
     }
-    
+
+    /* placement borders and step heights */
     .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
     .second-place { border-top: 5px solid #C0C0C0; margin-top: 30px; }
     .third-place { border-top: 5px solid #CD7F32; margin-top: 50px; }
-    
+
+    /* custom text sizing */
     .podium-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
     .podium-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
-    
-    /* 60% opacity grey text so it looks like soft subtext on both dark and light modes */
-    /* Automatically flips white/black, but with 80% opacity to look like subtext */
     .podium-score { 
         font-size: 1rem; 
         color: var(--text-color, inherit); 
         opacity: 0.8; 
         margin: 0px; 
     }
-    
+
+    /* desktop layout: physically reorder the columns so 1st place is in the middle */
+    @media (min-width: 641px) {
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) { order: 2; }
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) { order: 1; }
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] { display: flex !important; }
+    }
+
+    /* mobile layout: compact sizing so it fits on small screens without scrolling */
+    @media (max-width: 640px) {
+        .st-key-podium_container div[data-testid="stHorizontalBlock"],
+        .st-key-podium_container div[data-testid="column"] {
+            gap: 0.5rem !important;
+        }
+
+        .st-key-podium_container .podium-box {
+            height: 140px !important;
+            padding: 12px !important;
+            margin-top: 10px !important;
+        }
+
+        .st-key-podium_container .podium-title {
+            font-size: 1.3rem !important;
+            margin-bottom: 4px !important;
+        }
+
+        .st-key-podium_container .podium-name {
+            font-size: 1.1rem !important;
+            margin-bottom: 4px !important;
+        }
+
+        .st-key-podium_container .podium-score {
+            font-size: 0.85rem !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
+
 # ----------------------------------------------------------------------
 # CONFIGURATION & DATA LOADING
 # ----------------------------------------------------------------------
