@@ -674,7 +674,7 @@ with tab2:
     owner_counts = df['Beer Owner'].value_counts()
     sorted_owners = owner_counts.index.tolist()
 
-    # using unicode bold characters so it renders properly in the selectbox
+    # using unicode bold characters so it renders properly in the dropdown
     filter_options = ["𝗔𝗹𝗹"] + sorted_owners
 
     # 2. create two columns with the [2, 1] scale
@@ -684,11 +684,33 @@ with tab2:
         st.subheader("Beer List")
 
     with col_filter:
-        selected_owner = st.selectbox(
-            "Filter by Person:",
-            filter_options,
-            label_visibility="collapsed"
-        )
+        # css to make the popover look like a standard left-aligned dropdown
+        # AND successfully target the first <label> to create the divider gap
+        st.markdown("""
+            <style>
+            /* Left-align the popover button text */
+            div[data-testid="stPopover"] button {
+                justify-content: flex-start !important;
+            }
+            div[data-testid="stPopover"] button p {
+                text-align: left !important;
+            }
+            /* Add gap and line under the first radio option ("All") */
+            div[role="radiogroup"] > label:first-of-type {
+                margin-bottom: 12px !important;
+                padding-bottom: 12px !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        # replace selectbox with a popover + radio to prevent the mobile keyboard
+        with st.popover("Filter by Beer Owner", use_container_width=True):
+            selected_owner = st.radio(
+                "Filter by Person:",
+                filter_options,
+                label_visibility="collapsed"
+            )
 
     # 3. add a small gap between the title row and the table
     st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
@@ -718,5 +740,4 @@ with tab2:
 
     # dynamically update the caption to show how many beers are visible vs the overall total
     st.caption(f"Showing {len(final_display_df):,} of {len(df):,} total beers")
-
 
