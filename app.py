@@ -346,7 +346,7 @@ with st.sidebar:
     st.success(f"**Last Time Sync:**\n\n*{time_ago(last_sync_dt)}*")
 
     # REFRESH BUTTON
-    if st.button("Force Data Refresh", use_container_width=True):
+    if st.button("Reload Database", use_container_width=True):
         st.cache_data.clear()  # This deletes the frozen 5-minute data
         st.rerun()  # This instantly reloads the page with fresh data
 
