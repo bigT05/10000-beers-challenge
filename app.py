@@ -674,19 +674,32 @@ with tab2:
     full_beers_list = df.sort_values(by="Datetime", ascending=False).copy()
     full_beers_list = full_beers_list.reset_index(drop=True)
 
-    # assign reverse index (overwrites if it somehow already exists)
+    # assign reverse index
     full_beers_list["Beer #"] = range(len(full_beers_list), 0, -1)
 
     full_beers_list['Date'] = full_beers_list['Datetime'].dt.strftime('%d %b %Y')
     full_beers_list['Time (UTC)'] = full_beers_list['Datetime'].dt.strftime('%H:%M')
 
-    final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
+    # check if the beer datetime is older than or equal to the last snapchat sync
+    full_beers_list['Sync'] = full_beers_list['Datetime'].apply(
+        lambda dt: "✓" if pd.notna(last_sync_dt) and dt <= last_sync_dt else ""
+    )
+
+    # add the new column to the final display
+    final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)', 'Sync']]
 
     st.dataframe(
         final_display_df,
         use_container_width=True,
         hide_index=True,
-        height=700
+        height=700,
+        column_config={
+            "Beer #": st.column_config.NumberColumn(width=60),     # fixed small pixel width
+            "Beer Owner": st.column_config.TextColumn(width="large"), # stretches out large
+            "Date": st.column_config.TextColumn(width="medium"),      # medium width
+            "Time (UTC)": st.column_config.TextColumn(width="medium"),# medium width
+            "Sync": st.column_config.TextColumn(width=45)          # very small fixed pixel width
+        }
     )
 
     st.caption(f"Showing {len(final_display_df):,} of {len(full_beers_list):,} total beers")
