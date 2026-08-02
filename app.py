@@ -37,7 +37,7 @@ st.markdown("""
         background-color: #28a745 !important;
     }
 
-    /* hide all built-in streamlit header anchor links and svgs */
+    /* hide all built-in streamlit header anchor links and svg */
     a.header-anchor,
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a,
     .stMarkdown a svg {
@@ -281,7 +281,7 @@ with st.sidebar:
     recent_beers_df = df.sort_values(by="Datetime", ascending=False).head(10)
 
     for _, beer_row in recent_beers_df.iterrows():
-        # if the date/time was missing in excel, display "recently"
+        # if the date/time was missing in Excel, display "recently"
         if beer_row.get('Is_Fallback_Time', False):
             display_time = "recently"
         else:
@@ -341,7 +341,6 @@ with tab1:
     col3.metric("Estimated Finish Date", eta_str)
 
     st.divider()
-
 
     # --- SECTION 2: LEADERBOARD & PIE CHART ---
 
@@ -625,7 +624,7 @@ with tab1:
             "9 PM", "10 PM", "11 PM", "12 AM", "1 AM", "2 AM", "3 AM", "4 AM"
         ]
 
-        # create a mapping dictionary to convert 0-23 military time to friendly labels
+        # create a mapping dictionary to convert 24h time to friendly labels
         hour_mapping = {
             5: "5 AM", 6: "6 AM", 7: "7 AM", 8: "8 AM", 9: "9 AM", 10: "10 AM", 11: "11 AM",
             12: "12 PM", 13: "1 PM", 14: "2 PM", 15: "3 PM", 16: "4 PM", 17: "5 PM", 18: "6 PM",
