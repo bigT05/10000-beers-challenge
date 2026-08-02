@@ -680,12 +680,7 @@ with tab2:
     full_beers_list['Date'] = full_beers_list['Datetime'].dt.strftime('%d %b %Y')
     full_beers_list['Time (UTC)'] = full_beers_list['Datetime'].dt.strftime('%H:%M')
 
-    # check if the beer datetime is older than or equal to the last snapchat sync
-    full_beers_list['Sync'] = full_beers_list['Datetime'].apply(
-        lambda dt: "✓" if pd.notna(last_sync_dt) and dt <= last_sync_dt else ""
-    )
-
-    final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)', 'Sync']]
+    final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
 
     st.dataframe(
         final_display_df,
