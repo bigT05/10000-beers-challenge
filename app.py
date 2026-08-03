@@ -7,116 +7,119 @@ from datetime import datetime, timezone
 # ----------------------------------------------------------------------
 # PAGE CONFIGURATION
 # ----------------------------------------------------------------------
+
+GLOBAL_COLOUR = "#28a745"
+
 st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide")
 
 # custom css
-st.markdown("""
+st.markdown(f"""
     <style>
     /* header and sidebar transparency */
-    header[data-testid="stHeader"] {
+    header[data-testid="stHeader"] {{
         position: absolute !important;
         background-color: transparent !important;
         z-index: 99999 !important;
-    }
-    [data-testid="stSidebarHeader"] {
+    }}
+    [data-testid="stSidebarHeader"] {{
         background-color: transparent !important;
         padding-bottom: 0rem !important;
-    }
+    }}
 
     /* remove padding gaps at the top of the main container and sidebar */
     .block-container,
     section[data-testid="stSidebar"] > div:first-child,
-    [data-testid="stSidebarUserContent"] {
+    [data-testid="stSidebarUserContent"] {{
         padding-top: 0rem !important;
-    }
+    }}
 
     /* force custom color on the progress bar */
     .stProgress > div > div > div > div,
     [data-testid="stProgressBar"] > div > div,
-    div[role="progressbar"] > div > div {
-        background-color: #28a745 !important;
-    }
+    div[role="progressbar"] > div > div {{
+        background-color: {GLOBAL_COLOUR} !important;
+    }}
 
     /* hide all built-in streamlit header anchor links and svg */
     a.header-anchor,
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a,
-    .stMarkdown a svg {
+    .stMarkdown a svg {{
         display: none !important;
-    }
+    }}
 
     /* remove curved edges, white borders, and shadows from the app container */
     #root > div:first-child,
     .stApp, 
     [data-testid="stAppViewContainer"], 
-    [data-testid="stAppViewBlockContainer"] {
+    [data-testid="stAppViewBlockContainer"] {{
         border: none !important;
         border-radius: 0px !important;
         box-shadow: none !important;
         outline: none !important;
-    }
+    }}
 
     /* --- podium styling --- */
 
     /* base podium box styling (auto-adapts to light/dark themes) */
-    .podium-box {
+    .podium-box {{
         text-align: center;
         padding: 20px;
         border-radius: 10px;
         background-color: rgba(128, 128, 128, 0.15); 
         border: 1px solid rgba(128, 128, 128, 0.3);
         color: var(--text-color, inherit); 
-    }
+    }}
 
     /* placement borders and step heights */
-    .first-place { border-top: 5px solid #FFD700; margin-top: 0px; }
-    .second-place { border-top: 5px solid #C0C0C0; margin-top: 30px; }
-    .third-place { border-top: 5px solid #CD7F32; margin-top: 50px; }
+    .first-place {{ border-top: 5px solid #FFD700; margin-top: 0px; }}
+    .second-place {{ border-top: 5px solid #C0C0C0; margin-top: 30px; }}
+    .third-place {{ border-top: 5px solid #CD7F32; margin-top: 50px; }}
 
     /* custom text sizing */
-    .podium-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }
-    .podium-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
-    .podium-score { 
+    .podium-title {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }}
+    .podium-name {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }}
+    .podium-score {{ 
         font-size: 1rem; 
         color: var(--text-color, inherit); 
         opacity: 0.8; 
         margin: 0px; 
-    }
+    }}
 
     /* desktop layout: physically reorder the columns so 1st place is in the middle */
-    @media (min-width: 641px) {
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) { order: 2; }
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) { order: 1; }
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) { order: 3; }
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] { display: flex !important; }
-    }
+    @media (min-width: 641px) {{
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 2; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 1; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; }}
+    }}
 
     /* mobile layout: compact sizing so it fits on small screens without scrolling */
-    @media (max-width: 640px) {
+    @media (max-width: 640px) {{
         .st-key-podium_container div[data-testid="stHorizontalBlock"],
-        .st-key-podium_container div[data-testid="column"] {
+        .st-key-podium_container div[data-testid="column"] {{
             gap: 0.5rem !important;
-        }
+        }}
 
-        .st-key-podium_container .podium-box {
+        .st-key-podium_container .podium-box {{
             height: 140px !important;
             padding: 12px !important;
             margin-top: 10px !important;
-        }
+        }}
 
-        .st-key-podium_container .podium-title {
+        .st-key-podium_container .podium-title {{
             font-size: 1.3rem !important;
             margin-bottom: 4px !important;
-        }
+        }}
 
-        .st-key-podium_container .podium-name {
+        .st-key-podium_container .podium-name {{
             font-size: 1.1rem !important;
             margin-bottom: 4px !important;
-        }
+        }}
 
-        .st-key-podium_container .podium-score {
+        .st-key-podium_container .podium-score {{
             font-size: 0.85rem !important;
-        }
-    }
+        }}
+    }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -489,7 +492,7 @@ with tab1:
         daily_counts_df.columns = ['Date', 'Total Beers']
 
         fig_line = px.line(daily_counts_df, x='Date', y='Total Beers', template="plotly_dark")
-        fig_line.update_traces(line_color='#28a745', line_width=3)
+        fig_line.update_traces(line_color=GLOBAL_COLOUR, line_width=3)
         fig_line.update_layout(margin=dict(l=0, r=0, t=30, b=0), xaxis_title="", yaxis_title="", height=320)
         st.plotly_chart(fig_line, use_container_width=True)
 
@@ -647,7 +650,7 @@ with tab1:
             category_orders={"Time": custom_hour_order}
         )
 
-        fig_hours.update_traces(marker_color='#28a745')
+        fig_hours.update_traces(marker_color=GLOBAL_COLOUR)
         fig_hours.update_layout(xaxis_title="Hour of Day", yaxis_title="Total Beers")
 
         st.plotly_chart(fig_hours, use_container_width=True)
@@ -663,7 +666,7 @@ with tab1:
         day_counts_df.columns = ['Day', 'Count']
 
         fig_days = px.bar(day_counts_df, x='Day', y='Count', template="plotly_dark")
-        fig_days.update_traces(marker_color='#28a745')
+        fig_days.update_traces(marker_color=GLOBAL_COLOUR)
         fig_days.update_layout(xaxis_title="Day of Week", yaxis_title="Total Beers")
         st.plotly_chart(fig_days, use_container_width=True)
 
