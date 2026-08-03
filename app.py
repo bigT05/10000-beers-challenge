@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 # PAGE CONFIGURATION
 # ----------------------------------------------------------------------
 
-GLOBAL_COLOUR = "#28a745"
+GLOBAL_COLOUR = "#EE7846"
 
 st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide")
 
