@@ -48,6 +48,10 @@ st.markdown(f"""
 [data-testid="stTab"] .react-aria-SelectionIndicator {{
     background-color: {GLOBAL_COLOUR} !important;
 }}
+[data-testid="stTab"]:not([aria-selected="true"]):hover p {{
+    color: {GLOBAL_COLOUR} !important;
+    opacity: 1;
+}}
 
     /* 3. MAKE METRIC NUMBERS POP & PREVENT TRUNCATION */
     [data-testid="stMetricValue"] > div, 
