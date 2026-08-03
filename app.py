@@ -15,77 +15,97 @@ st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout
 # custom css
 st.markdown(f"""
     <style>
-    /* header and sidebar transparency */
-    header[data-testid="stHeader"] {{
-        position: absolute !important;
-        background-color: transparent !important;
-        z-index: 99999 !important;
-    }}
-    [data-testid="stSidebarHeader"] {{
-        background-color: transparent !important;
-        padding-bottom: 0rem !important;
+    /* 1. HIDE DEFAULT STREAMLIT ELEMENTS & LINKS */
+    header[data-testid="stHeader"] {{ background-color: transparent !important; }}
+    [data-testid="stSidebarHeader"] {{ padding-bottom: 0rem !important; }}
+    .block-container {{ padding-top: 2rem !important; }}
+    #root > div:first-child, .stApp {{ border: none !important; }}
+
+    /* Nukes the link icons next to headers across all Streamlit versions */
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ 
+        display: none !important; 
     }}
 
-    /* remove padding gaps at the top of the main container and sidebar */
-    .block-container,
-    section[data-testid="stSidebar"] > div:first-child,
-    [data-testid="stSidebarUserContent"] {{
-        padding-top: 0rem !important;
+/* 2. STYLE THE TABS */
+[data-testid="stTab"][aria-selected="true"] {{
+    color: {GLOBAL_COLOUR} !important;
+}}
+[data-testid="stTab"][aria-selected="true"] p {{
+    color: {GLOBAL_COLOUR} !important;
+    font-weight: 800 !important;
+    font-size: 1.15rem !important;
+}}
+[data-testid="stTab"]:not([aria-selected="true"]) p {{
+    font-size: 1rem !important;
+    opacity: 0.75;
+}}
+.stTabs div[data-baseweb="tab-highlight"] {{
+    background-color: {GLOBAL_COLOUR} !important;
+    height: 3px !important;
+    border-radius: 3px;
+}}
+[data-testid="stTab"] .react-aria-SelectionIndicator {{
+    background-color: {GLOBAL_COLOUR} !important;
+}}
+
+    /* 3. MAKE METRIC NUMBERS POP & PREVENT TRUNCATION */
+    [data-testid="stMetricValue"] > div, 
+    [data-testid="stMetricValue"] {{
+        color: {GLOBAL_COLOUR} !important;
+        font-weight: 900 !important;
+        font-size: 1.6rem !important; 
+        white-space: normal !important; 
+        line-height: 1.2 !important;
     }}
 
-    /* force custom color on the progress bar */
-    .stProgress > div > div > div > div,
-    [data-testid="stProgressBar"] > div > div,
-    div[role="progressbar"] > div > div {{
+    /* 4. COLOR & ACCENT HEADERS */
+    h1 {{
+        color: {GLOBAL_COLOUR} !important; 
+    }}
+    h3 {{
+        color: #FFFFFF !important; 
+        border-left: 5px solid {GLOBAL_COLOUR}; 
+        padding-left: 12px !important;
+        margin-top: 15px !important;
+        margin-bottom: 15px !important;
+    }}
+    
+    /* 5. FIX THE PROGRESS BAR COLOR */
+    .stProgress > div > div:has(div[style*="translateX"]) {{
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 10px !important;
+        height: 18px !important;
+        overflow: hidden !important;
+    }}
+    .stProgress div[style*="translateX"] {{
         background-color: {GLOBAL_COLOUR} !important;
+        height: 18px !important;
+        border-radius: 10px !important;
+    }}
+    
+
+    /* 6. SUBTLE SIDEBAR ACCENTS */
+    [data-testid="stSidebar"] hr {{
+        border-bottom-color: {GLOBAL_COLOUR} !important;
+        opacity: 0.2; 
     }}
 
-    /* hide all built-in streamlit header anchor links and svg */
-    a.header-anchor,
-    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a,
-    .stMarkdown a svg {{
-        display: none !important;
-    }}
-
-    /* remove curved edges, white borders, and shadows from the app container */
-    #root > div:first-child,
-    .stApp, 
-    [data-testid="stAppViewContainer"], 
-    [data-testid="stAppViewBlockContainer"] {{
-        border: none !important;
-        border-radius: 0px !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }}
-
-    /* --- podium styling --- */
-
-    /* base podium box styling (auto-adapts to light/dark themes) */
+    /* 7. DESKTOP PODIUM STYLING */
     .podium-box {{
         text-align: center;
         padding: 20px;
         border-radius: 10px;
-        background-color: rgba(128, 128, 128, 0.15); 
-        border: 1px solid rgba(128, 128, 128, 0.3);
-        color: var(--text-color, inherit); 
+        background-color: rgba(255, 255, 255, 0.03); 
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }}
-
-    /* placement borders and step heights */
     .first-place {{ border-top: 5px solid #FFD700; margin-top: 0px; }}
     .second-place {{ border-top: 5px solid #C0C0C0; margin-top: 30px; }}
     .third-place {{ border-top: 5px solid #CD7F32; margin-top: 50px; }}
+    .podium-title {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: #FFFFFF !important; }}
+    .podium-name {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; color: #FFFFFF !important; }}
+    .podium-score {{ font-size: 1rem; opacity: 0.8; margin: 0px; color: #FFFFFF !important; }}
 
-    /* custom text sizing */
-    .podium-title {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; }}
-    .podium-name {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }}
-    .podium-score {{ 
-        font-size: 1rem; 
-        color: var(--text-color, inherit); 
-        opacity: 0.8; 
-        margin: 0px; 
-    }}
-
-    /* desktop layout: physically reorder the columns so 1st place is in the middle */
+    /* 8. RESPONSIVE PODIUM LAYOUTS */
     @media (min-width: 641px) {{
         .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 2; }}
         .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 1; }}
@@ -93,31 +113,19 @@ st.markdown(f"""
         .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; }}
     }}
 
-    /* mobile layout: compact sizing so it fits on small screens without scrolling */
     @media (max-width: 640px) {{
-        .st-key-podium_container div[data-testid="stHorizontalBlock"],
-        .st-key-podium_container div[data-testid="column"] {{
-            gap: 0.5rem !important;
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] {{
+            display: flex !important;
+            flex-direction: column !important; 
+            gap: 15px !important;
         }}
-
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 1; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 2; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
         .st-key-podium_container .podium-box {{
-            height: 140px !important;
-            padding: 12px !important;
-            margin-top: 10px !important;
-        }}
-
-        .st-key-podium_container .podium-title {{
-            font-size: 1.3rem !important;
-            margin-bottom: 4px !important;
-        }}
-
-        .st-key-podium_container .podium-name {{
-            font-size: 1.1rem !important;
-            margin-bottom: 4px !important;
-        }}
-
-        .st-key-podium_container .podium-score {{
-            font-size: 0.85rem !important;
+            height: auto !important;
+            margin-top: 0px !important; 
+            padding: 15px !important;
         }}
     }}
     </style>
@@ -296,8 +304,18 @@ with st.sidebar:
 
     # --- SYSTEM STATUS ---
     st.subheader("System Status")
-    st.info(f"**Last Spreadsheet Update:**\n\n*{time_ago(manual_sync_dt)}*")
-    st.success(f"**Last Time Sync:**\n\n*{time_ago(last_sync_dt)}*")
+
+    # Custom HTML Status Cards to replace st.info and st.success
+    st.markdown(f"""
+            <div style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid {GLOBAL_COLOUR}; border-radius: 5px; padding: 12px; margin-bottom: 10px;">
+                <div style="font-size: 0.85rem; color: #FFFFFF; opacity: 0.7; margin-bottom: 5px;">Last Spreadsheet Update</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: {GLOBAL_COLOUR};">{time_ago(manual_sync_dt)}</div>
+            </div>
+            <div style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid {GLOBAL_COLOUR}; border-radius: 5px; padding: 12px; margin-bottom: 15px;">
+                <div style="font-size: 0.85rem; color: #FFFFFF; opacity: 0.7; margin-bottom: 5px;">Last Time Sync</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: {GLOBAL_COLOUR};">{time_ago(last_sync_dt)}</div>
+            </div>
+        """, unsafe_allow_html=True)
 
     # database refresh button
     if st.button("Reload Database", use_container_width=True):
@@ -338,10 +356,21 @@ with tab1:
     st.subheader("Beer Progress Bar")
     st.progress(min(progress_pct, 1.0))
 
+    # Add some space
+    st.write("")
+
     col1, col2, col3 = st.columns(3)
-    col1.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
-    col2.metric("Current Flow of Beer", velocity_str)
-    col3.metric("Estimated Finish Date", eta_str)
+
+    # Wrapping them in st.container(border=True) creates a sleek outline card!
+    with col1:
+        with st.container(border=True):
+            st.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
+    with col2:
+        with st.container(border=True):
+            st.metric("Current Flow of Beer", velocity_str)
+    with col3:
+        with st.container(border=True):
+            st.metric("Estimated Finish Date", eta_str)
 
     st.divider()
 
@@ -556,14 +585,17 @@ with tab1:
         max_daily_count = max(1, raw_daily_counts.max())
         eps = 0.001
 
+        # 1. Convert your GLOBAL_COLOUR hex into RGB numbers
+        hex_color = GLOBAL_COLOUR.lstrip('#')
+        r, g, b = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+
+        # 2. Build the color scale using Plotly's supported rgba() format
         heatmap_colors = [
-            [0.0, "#161b22"],
-            [eps, "#161b22"],
-            [eps, "#0e4429"],
-            [0.35, "#006d32"],
-            [0.6, "#26a641"],
-            [0.8, "#39d353"],
-            [1.0, "#57eb6a"],
+            [0.0, "#161b22"],  # 0 beers: Dark grey background
+            [eps, "#161b22"],  # Threshold anchor
+            [eps, f"rgba({r}, {g}, {b}, 0.25)"],  # Low beers: 25% opacity
+            [0.5, f"rgba({r}, {g}, {b}, 0.60)"],  # Mid beers: 60% opacity
+            [1.0, f"rgb({r}, {g}, {b})"]  # Max beers: 100% solid global color
         ]
 
         fig_cal = go.Figure(data=go.Heatmap(
