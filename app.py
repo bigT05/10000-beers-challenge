@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timezone
+import math
 
 # ----------------------------------------------------------------------
 # PAGE CONFIGURATION
@@ -354,7 +355,42 @@ with tab1:
         velocity_str = "TBD"
 
     st.subheader("Beer Progress Bar")
-    st.progress(min(progress_pct, 1.0))
+
+    display_pct = math.floor(progress_pct * 100)  # floors, so 99.99% shows as 99%, not 100%
+    bar_width = min(progress_pct * 100, 100)  # visual fill width, capped at 100%
+
+    st.markdown(f"""
+        <div style="
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 24px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        ">
+            <div style="
+                background-color: {GLOBAL_COLOUR};
+                height: 100%;
+                width: {bar_width}%;
+                border-radius: 10px;
+            "></div>
+            <div style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                padding-left: 12px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: #FFFFFF;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            ">{display_pct}%</div>
+        </div>
+    """, unsafe_allow_html=True)
 
     # Add some space
     st.write("")
