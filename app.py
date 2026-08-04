@@ -27,31 +27,31 @@ st.markdown(f"""
         display: none !important; 
     }}
 
-/* 2. STYLE THE TABS */
-[data-testid="stTab"][aria-selected="true"] {{
-    color: {GLOBAL_COLOUR} !important;
-}}
-[data-testid="stTab"][aria-selected="true"] p {{
-    color: {GLOBAL_COLOUR} !important;
-    font-weight: 800 !important;
-    font-size: 1.15rem !important;
-}}
-[data-testid="stTab"]:not([aria-selected="true"]) p {{
-    font-size: 1rem !important;
-    opacity: 0.75;
-}}
-.stTabs div[data-baseweb="tab-highlight"] {{
-    background-color: {GLOBAL_COLOUR} !important;
-    height: 3px !important;
-    border-radius: 3px;
-}}
-[data-testid="stTab"] .react-aria-SelectionIndicator {{
-    background-color: {GLOBAL_COLOUR} !important;
-}}
-[data-testid="stTab"]:not([aria-selected="true"]):hover p {{
-    color: {GLOBAL_COLOUR} !important;
-    opacity: 1;
-}}
+    /* 2. STYLE THE TABS */
+    [data-testid="stTab"][aria-selected="true"] {{
+        color: {GLOBAL_COLOUR} !important;
+    }}
+    [data-testid="stTab"][aria-selected="true"] p {{
+        color: {GLOBAL_COLOUR} !important;
+        font-weight: 800 !important;
+        font-size: 1.15rem !important;
+    }}
+    [data-testid="stTab"]:not([aria-selected="true"]) p {{
+        font-size: 1rem !important;
+        opacity: 0.75;
+    }}
+    .stTabs div[data-baseweb="tab-highlight"] {{
+        background-color: {GLOBAL_COLOUR} !important;
+        height: 3px !important;
+        border-radius: 3px;
+    }}
+    [data-testid="stTab"] .react-aria-SelectionIndicator {{
+        background-color: {GLOBAL_COLOUR} !important;
+    }}
+    [data-testid="stTab"]:not([aria-selected="true"]):hover p {{
+        color: {GLOBAL_COLOUR} !important;
+        opacity: 1;
+    }}
 
     /* 3. MAKE METRIC NUMBERS POP & PREVENT TRUNCATION */
     [data-testid="stMetricValue"] > div, 
