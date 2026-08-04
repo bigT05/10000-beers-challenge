@@ -11,127 +11,65 @@ import math
 
 GLOBAL_COLOUR = "#EE7846"
 
-st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide")
+st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide", initial_sidebar_state="expanded")
 
-# custom css
+# custom css for SaaS, No-Scroll layout (Light/Dark Mode Compatible)
 st.markdown(f"""
     <style>
-    /* 1. HIDE DEFAULT STREAMLIT ELEMENTS & LINKS */
+    /* 1. HIDE DEFAULT STREAMLIT ELEMENTS & LINKS BUT KEEP BUTTONS */
     header[data-testid="stHeader"] {{ background-color: transparent !important; }}
-    [data-testid="stSidebarHeader"] {{ padding-bottom: 0rem !important; }}
-    .block-container {{ padding-top: 2rem !important; }}
+    [data-testid="stSidebarHeader"] {{ padding-bottom: 0rem !important; padding-top: 1rem !important; }}
+    .block-container {{ padding: 1rem 1rem 0rem 1rem !important; max-width: 100% !important; }}
     #root > div:first-child, .stApp {{ border: none !important; }}
 
-    /* Nukes the link icons next to headers across all Streamlit versions */
-    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ 
-        display: none !important; 
-    }}
+    /* Nukes the link icons */
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ display: none !important; }}
 
-    /* 2. STYLE THE TABS */
-    [data-testid="stTab"][aria-selected="true"] {{
-        color: {GLOBAL_COLOUR} !important;
-    }}
-    [data-testid="stTab"][aria-selected="true"] p {{
-        color: {GLOBAL_COLOUR} !important;
-        font-weight: 800 !important;
-        font-size: 1.15rem !important;
-    }}
-    [data-testid="stTab"]:not([aria-selected="true"]) p {{
-        font-size: 1rem !important;
-        opacity: 0.75;
-    }}
-    .stTabs div[data-baseweb="tab-highlight"] {{
-        background-color: {GLOBAL_COLOUR} !important;
-        height: 3px !important;
-        border-radius: 3px;
-    }}
-    [data-testid="stTab"] .react-aria-SelectionIndicator {{
-        background-color: {GLOBAL_COLOUR} !important;
-    }}
-    [data-testid="stTab"]:not([aria-selected="true"]):hover p {{
-        color: {GLOBAL_COLOUR} !important;
-        opacity: 1;
-    }}
+    /* 2. COMPACT TABS */
+    [data-testid="stTabs"] button {{ padding-top: 0rem !important; padding-bottom: 0rem !important; }}
+    [data-testid="stTab"][aria-selected="true"] {{ color: {GLOBAL_COLOUR} !important; }}
+    [data-testid="stTab"][aria-selected="true"] p {{ color: {GLOBAL_COLOUR} !important; font-weight: 700 !important; font-size: 1rem !important; }}
+    [data-testid="stTab"]:not([aria-selected="true"]) p {{ font-size: 0.9rem !important; opacity: 0.7; }}
+    .stTabs div[data-baseweb="tab-highlight"] {{ background-color: {GLOBAL_COLOUR} !important; height: 2px !important; }}
 
-    /* 3. MAKE METRIC NUMBERS POP & PREVENT TRUNCATION */
-    [data-testid="stMetricValue"] > div, 
-    [data-testid="stMetricValue"] {{
-        color: {GLOBAL_COLOUR} !important;
-        font-weight: 900 !important;
-        font-size: 1.6rem !important; 
-        white-space: normal !important; 
-        line-height: 1.2 !important;
+    /* 3. METRICS POP - SaaS STYLE */
+    [data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] {{
+        color: {GLOBAL_COLOUR} !important; font-weight: 800 !important; font-size: 1.25rem !important; line-height: 1.1 !important;
     }}
+    [data-testid="stMetricLabel"] {{ font-size: 0.8rem !important; opacity: 0.8 !important; margin-bottom: -5px !important; }}
 
-    /* 4. COLOR & ACCENT HEADERS */
-    h1 {{
-        color: {GLOBAL_COLOUR} !important; 
-    }}
-    h3 {{
-        color: #FFFFFF !important; 
-        border-left: 5px solid {GLOBAL_COLOUR}; 
-        padding-left: 12px !important;
-        margin-top: 15px !important;
-        margin-bottom: 15px !important;
-    }}
-    
-    /* 5. FIX THE PROGRESS BAR COLOR */
-    .stProgress > div > div:has(div[style*="translateX"]) {{
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 10px !important;
-        height: 18px !important;
-        overflow: hidden !important;
-    }}
-    .stProgress div[style*="translateX"] {{
-        background-color: {GLOBAL_COLOUR} !important;
-        height: 18px !important;
-        border-radius: 10px !important;
-    }}
-    
-    /* 6. SUBTLE SIDEBAR ACCENTS */
-    [data-testid="stSidebar"] hr {{
-        border-bottom-color: {GLOBAL_COLOUR} !important;
-        opacity: 0.2; 
-    }}
+    /* 4. REDUCE WHITE SPACE & HEADERS */
+    h2 {{ color: {GLOBAL_COLOUR} !important; font-size: 1.6rem !important; margin: 0 !important; padding: 0 !important; }}
+    h6 {{ font-size: 0.9rem !important; font-weight: 600 !important; margin: 0 0 5px 0 !important; padding: 0 !important; opacity: 0.9; }}
+    .element-container {{ margin-bottom: 0px !important; }}
+    .stMarkdown {{ margin-bottom: 0px !important; }}
 
-    /* 7. DESKTOP PODIUM STYLING */
-    .podium-box {{
-        text-align: center;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: rgba(255, 255, 255, 0.03); 
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }}
-    .first-place {{ border-top: 5px solid #FFD700; margin-top: 0px; }}
-    .second-place {{ border-top: 5px solid #C0C0C0; margin-top: 30px; }}
-    .third-place {{ border-top: 5px solid #CD7F32; margin-top: 50px; }}
-    .podium-title {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: #FFFFFF !important; }}
-    .podium-name {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; color: #FFFFFF !important; }}
-    .podium-score {{ font-size: 1rem; opacity: 0.8; margin: 0px; color: #FFFFFF !important; }}
+    /* 5. FIX THE PROGRESS BAR COLOR (Restored old background style) */
+    .stProgress > div > div:has(div[style*="translateX"]) {{ background-color: rgba(128, 128, 128, 0.15) !important; border: 1px solid rgba(128, 128, 128, 0.2) !important; border-radius: 4px !important; height: 10px !important; }}
+    .stProgress div[style*="translateX"] {{ background-color: {GLOBAL_COLOUR} !important; height: 10px !important; border-radius: 4px !important; }}
 
-    /* 8. RESPONSIVE PODIUM LAYOUTS */
-    @media (min-width: 641px) {{
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 2; }}
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 1; }}
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; }}
-    }}
+    /* 6. SIDEBAR COMPACTNESS */
+    [data-testid="stSidebar"] hr {{ margin: 0.5rem 0 !important; opacity: 0.2; border-bottom-color: {GLOBAL_COLOUR} !important; }}
+    [data-testid="stSidebar"] p {{ font-size: 0.8rem !important; margin-bottom: 0.2rem !important; }}
 
-    @media (max-width: 640px) {{
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] {{
-            display: flex !important;
-            flex-direction: column !important; 
-            gap: 15px !important;
-        }}
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 1; }}
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 2; }}
-        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
-        .st-key-podium_container .podium-box {{
-            height: auto !important;
-            margin-top: 0px !important; 
-            padding: 15px !important;
-        }}
-    }}
+    /* 7. CUSTOM SAAS PODIUM/CARDS (Restored distinct box backgrounds) */
+    .podium-container {{ display: flex; gap: 8px; margin-bottom: 8px; }}
+    .podium-box {{ flex: 1; text-align: center; padding: 6px; border-radius: 6px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
+    .first-place {{ border-top: 3px solid #FFD700; }}
+    .second-place {{ border-top: 3px solid #C0C0C0; }}
+    .third-place {{ border-top: 3px solid #CD7F32; }}
+    .podium-title {{ font-size: 0.75rem; font-weight: bold; margin-bottom: 2px; color: var(--text-color); }}
+    .podium-name {{ font-size: 0.9rem; font-weight: bold; margin-bottom: 0px; color: var(--text-color); }}
+    .podium-score {{ font-size: 0.8rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.1; }}
+
+    /* 8. REDUCE STREAMLIT CONTAINER PADDING */
+    [data-testid="stVerticalBlockBorderWrapper"] > div {{ padding: 0.7rem !important; border-radius: 8px !important; }}
+
+    /* 9. POPOVER & DATAFRAME STYLING */
+    [data-testid="stDataFrame"] {{ margin-bottom: 0px !important; }}
+    div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
+    div[data-testid="stPopover"] button p {{ text-align: left !important; }}
+    div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 12px !important; padding-bottom: 12px !important; border-bottom: 1px solid var(--border-color) !important; }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -139,88 +77,48 @@ st.markdown(f"""
 # CONFIGURATION & DATA LOADING
 # ----------------------------------------------------------------------
 
-# live Dropbox link
 DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/m69ohs691eb8zbkdzsg9z/10000-beers-log.xlsx?rlkey=n7buk0hfmsubo7ivkz6qyf97s&st=2v1r6dop&dl=1"
-# beer goal
 BEER_GOAL = 10000
 
 
-@st.cache_data(ttl=300, show_spinner="Fetching fresh beers...")  # cache data for 5 mins to prevent constant reloading
+@st.cache_data(ttl=300, show_spinner="Fetching fresh beers...")
 def load_data():
     try:
-        # load main beers list directly from dropbox
         beers_df = pd.read_excel(DROPBOX_DIRECT_URL, sheet_name="Beers List", engine='openpyxl')
-
-        # drop rows where beer owner is blank
         beers_df = beers_df.dropna(subset=['Beer Owner'])
 
         parsed_last_sync = pd.NaT
         parsed_manual_sync = pd.NaT
 
-        # --- PARSE METADATA DATES ---
         try:
             meta_df = pd.read_excel(DROPBOX_DIRECT_URL, sheet_name="Metadata", header=None, engine='openpyxl')
 
-            # unified helper to catch excel serial dates, native datetimes, and nans
             def format_date_str(val):
-                if pd.isna(val):
-                    return ""
-                if isinstance(val, (int, float)):
-                    return (pd.to_datetime('1899-12-30') + pd.Timedelta(days=val)).strftime('%d/%m/%Y')
-                if isinstance(val, (pd.Timestamp, datetime)):
-                    return val.strftime('%d/%m/%Y')
+                if pd.isna(val): return ""
+                if isinstance(val, (int, float)): return (pd.to_datetime('1899-12-30') + pd.Timedelta(days=val)).strftime('%d/%m/%Y')
+                if isinstance(val, (pd.Timestamp, datetime)): return val.strftime('%d/%m/%Y')
                 return str(val).strip()
 
-            # parse manual timestamp (AppSheet)
-            manual_date = format_date_str(meta_df.iloc[1, 1])
-            manual_time = str(meta_df.iloc[1, 2]).strip()
-            parsed_manual_sync = pd.to_datetime(f"{manual_date} {manual_time}", dayfirst=True, errors='coerce')
+            parsed_manual_sync = pd.to_datetime(f"{format_date_str(meta_df.iloc[1, 1])} {str(meta_df.iloc[1, 2]).strip()}", dayfirst=True, errors='coerce')
+            if pd.notna(parsed_manual_sync): parsed_manual_sync = parsed_manual_sync.replace(tzinfo=timezone.utc)
 
-            if pd.notna(parsed_manual_sync):
-                parsed_manual_sync = parsed_manual_sync.replace(tzinfo=timezone.utc)
-
-            # parse snapchat/sync timestamp
-            sync_date = format_date_str(meta_df.iloc[2, 1])
-            sync_time = str(meta_df.iloc[2, 2]).strip()
-            parsed_last_sync = pd.to_datetime(f"{sync_date} {sync_time}", dayfirst=True, errors='coerce')
-
-            if pd.notna(parsed_last_sync):
-                parsed_last_sync = parsed_last_sync.replace(tzinfo=timezone.utc)
-
+            parsed_last_sync = pd.to_datetime(f"{format_date_str(meta_df.iloc[2, 1])} {str(meta_df.iloc[2, 2]).strip()}", dayfirst=True, errors='coerce')
+            if pd.notna(parsed_last_sync): parsed_last_sync = parsed_last_sync.replace(tzinfo=timezone.utc)
         except Exception:
-            pass  # metadata parsing failed, fallbacks will trigger below
+            pass
 
-        # --- HANDLE MISSING DATES AND TIMES ---
-
-        # mark which rows are missing timestamps
         beers_df['Is_Fallback_Time'] = beers_df['Date of Beer (UTC)'].isna() | beers_df['Time of Beer (UTC)'].isna()
-
-        # fallback: if metadata is missing, use current UTC time
         fallback_dt = parsed_manual_sync if pd.notna(parsed_manual_sync) else datetime.now(timezone.utc)
 
-        # fill missing values
-        beers_df['Date of Beer (UTC)'] = beers_df['Date of Beer (UTC)'].fillna(fallback_dt.strftime('%d/%m/%Y'))
+        beers_df['Date of Beer (UTC)'] = beers_df['Date of Beer (UTC)'].fillna(fallback_dt.strftime('%d/%m/%Y')).apply(format_date_str)
         beers_df['Time of Beer (UTC)'] = beers_df['Time of Beer (UTC)'].fillna(fallback_dt.strftime('%H:%M:%S'))
 
-        # --- NORMALIZE MIXED FORMATS ---
-
-        # apply the unified date format helper to the main dataframe
-        beers_df['Date of Beer (UTC)'] = beers_df['Date of Beer (UTC)'].apply(format_date_str)
-
         normalized_dates = pd.to_datetime(beers_df['Date of Beer (UTC)'], dayfirst=True, errors='coerce')
-        normalized_times = beers_df['Time of Beer (UTC)'].astype(str)
+        beers_df['Datetime'] = pd.to_datetime(normalized_dates.dt.strftime('%Y-%m-%d') + " " + beers_df['Time of Beer (UTC)'].astype(str), errors='coerce')
 
-        beers_df['Datetime'] = pd.to_datetime(
-            normalized_dates.dt.strftime('%Y-%m-%d') + " " + normalized_times,
-            errors='coerce'
-        )
-
-        # drop any failed conversions, sort chronologically, and apply UTC timezone
         beers_df = beers_df.dropna(subset=['Datetime']).sort_values(by="Datetime").reset_index(drop=True)
         beers_df['Datetime'] = beers_df['Datetime'].dt.tz_localize('UTC')
-
         return beers_df, parsed_last_sync, parsed_manual_sync
-
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return pd.DataFrame(), pd.NaT, pd.NaT
@@ -228,7 +126,6 @@ def load_data():
 
 df, last_sync_dt, manual_sync_dt = load_data()
 
-# stop execution if data is empty
 if df.empty:
     st.warning("No data found. Please check your Excel file.")
     st.stop()
@@ -239,579 +136,259 @@ if df.empty:
 # ----------------------------------------------------------------------
 
 def time_ago(timestamp):
-    """converts a datetime into a relative 'time ago' string."""
-    if pd.isna(timestamp):
-        return "Never"
-
-    current_utc = datetime.now(timezone.utc)
-    time_diff = current_utc - timestamp
-    total_secs = time_diff.total_seconds()
-
+    if pd.isna(timestamp): return "Never"
+    total_secs = (datetime.now(timezone.utc) - timestamp).total_seconds()
     if total_secs < 60:
-        return f"{int(max(0, total_secs))} secs ago"
+        return f"{int(max(0, total_secs))}s ago"
     elif total_secs < 3600:
-        mins = int(total_secs // 60)
-        return f"{mins} min{'s' if mins > 1 else ''} ago"
+        return f"{int(total_secs // 60)}m ago"
     elif total_secs < 86400:
-        hours = int(total_secs // 3600)
-        return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        return f"{int(total_secs // 3600)}h ago"
     else:
-        days = int(total_secs // 86400)
-        return f"{days} day{'s' if days > 1 else ''} ago"
+        return f"{int(total_secs // 86400)}d ago"
 
 
 def format_custom_date(input_dt):
-    """converts a datetime object to a '7th September 2029' format."""
-    if pd.isna(input_dt):
-        return "Unknown"
-
+    if pd.isna(input_dt): return "Unknown"
     dt_day = input_dt.day
+    day_suffix = "th" if 11 <= (dt_day % 100) <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(dt_day % 10, "th")
+    return f"{dt_day}{day_suffix} {input_dt.strftime('%b %y')}"
 
-    # figure out the st, nd, rd, th suffix
-    if 11 <= (dt_day % 100) <= 13:
-        day_suffix = "th"
-    else:
-        day_suffix = {1: "st", 2: "nd", 3: "rd"}.get(dt_day % 10, "th")
 
-    # %B gets the full capitalized month name (e.g., 'September')
-    dt_month = input_dt.strftime('%B')
-    dt_year = input_dt.year
-
-    return f"{dt_day}{day_suffix} {dt_month} {dt_year}"
+def get_ordinal(rank_num):
+    if 11 <= (rank_num % 100) <= 13: return str(rank_num) + "th"
+    return str(rank_num) + {1: "st", 2: "nd", 3: "rd"}.get(rank_num % 10, "th")
 
 
 # ----------------------------------------------------------------------
-# SIDEBAR: FEED & STATUS
+# SIDEBAR
 # ----------------------------------------------------------------------
 
 with st.sidebar:
-    # profile logo header
     st.image("assets/profile.jpg", clamp=True)
+    st.markdown("---")
 
-    st.divider()
+    st.markdown("###### Recent Beers 🍺")
+    for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
+        display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
+        st.markdown(f"<div style='font-size: 0.75rem; padding: 2px 0;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>", unsafe_allow_html=True)
 
-    # --- RECENT CHECK-INS ---
-    st.subheader("Recent Beers* 🍺", anchor=False)
+    st.markdown("---")
 
-    recent_beers_df = df.sort_values(by="Datetime", ascending=False).head(10)
-
-    for _, beer_row in recent_beers_df.iterrows():
-        # if the date/time was missing in Excel, display "recently"
-        if beer_row.get('Is_Fallback_Time', False):
-            display_time = "recently"
-        else:
-            display_time = time_ago(beer_row['Datetime'])
-
-        st.markdown(f"**{beer_row['Beer Owner']}** - *{display_time}*")
-
-    st.divider()
-
-    # --- SYSTEM STATUS ---
-    st.subheader("System Status")
-
-    # Custom HTML Status Cards to replace st.info and st.success
+    st.markdown("###### System Status")
     st.markdown(f"""
-            <div style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid {GLOBAL_COLOUR}; border-radius: 5px; padding: 12px; margin-bottom: 10px;">
-                <div style="font-size: 0.85rem; color: #FFFFFF; opacity: 0.7; margin-bottom: 5px;">Last Spreadsheet Update</div>
-                <div style="font-size: 1.1rem; font-weight: bold; color: {GLOBAL_COLOUR};">{time_ago(manual_sync_dt)}</div>
-            </div>
-            <div style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid {GLOBAL_COLOUR}; border-radius: 5px; padding: 12px; margin-bottom: 15px;">
-                <div style="font-size: 0.85rem; color: #FFFFFF; opacity: 0.7; margin-bottom: 5px;">Last Time Sync</div>
-                <div style="font-size: 1.1rem; font-weight: bold; color: {GLOBAL_COLOUR};">{time_ago(last_sync_dt)}</div>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # database refresh button
-    if st.button("Reload Database", use_container_width=True):
-        st.cache_data.clear()  # clears cached database call
-        st.rerun()  # reloads the streamlit app state
+        <div style="font-size: 0.75rem; margin-bottom: 10px;">
+            <div style="opacity:0.7">Last Entry: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(manual_sync_dt)}</span></div>
+            <div style="opacity:0.7">Last Sync: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(last_sync_dt)}</span></div>
+        </div>
+    """, unsafe_allow_html=True)
+    if st.button("↻ Reload", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
 
 # ----------------------------------------------------------------------
 # MAIN DASHBOARD
 # ----------------------------------------------------------------------
-st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h1>", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["Summary", "Full Beer List"])
+# Title strictly above tabs, zero bottom margin for tighter spacing
+st.markdown("<h2 style='margin-bottom: 0px;'>🍻 10,000 Beers Challenge</h2>", unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["Dashboard", "Full Beer List"])
 
 with tab1:
-    # --- SECTION 1: BEER PROGRESS CHART ---
+    # Add a tiny visual gap below tabs before rendering KPIs
+    st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
 
+    # --- SAAS HEADER: TOP KPIs & PROGRESS ---
     total_beers = len(df)
     progress_pct = total_beers / BEER_GOAL
-
-    # extrapolation logic
     first_beer_time = df['Datetime'].min()
     current_time = datetime.now(timezone.utc)
     days_elapsed = (current_time - first_beer_time).total_seconds() / 86400
 
     if days_elapsed > 0:
         beers_per_day = total_beers / days_elapsed
-        beers_left = BEER_GOAL - total_beers
-        days_left = beers_left / beers_per_day
-        eta_date = current_time + pd.Timedelta(days=days_left)
-
-        # pass the raw date object into the custom formatting function
+        eta_date = current_time + pd.Timedelta(days=(BEER_GOAL - total_beers) / beers_per_day)
         eta_str = format_custom_date(eta_date)
-        velocity_str = f"{beers_per_day:.1f} beers/day"
+        velocity_str = f"{beers_per_day:.1f} beers / day"
     else:
-        eta_str = "TBD"
-        velocity_str = "TBD"
+        eta_str, velocity_str = "TBD", "TBD"
 
-    st.subheader("Beer Progress Bar")
-
-    display_pct = math.floor(progress_pct * 100)  # floors, so 99.99% shows as 99%, not 100%
-    bar_width = min(progress_pct * 100, 100)  # visual fill width, capped at 100%
-
-    st.markdown(f"""
-        <div style="
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            height: 24px;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        ">
-            <div style="
-                background-color: {GLOBAL_COLOUR};
-                height: 100%;
-                width: {bar_width}%;
-                border-radius: 10px;
-            "></div>
-            <div style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
-                padding-left: 12px;
-                font-size: 0.8rem;
-                font-weight: 700;
-                color: #FFFFFF;
-                text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-            ">{display_pct}%</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Add some space
-    st.write("")
-
-    col1, col2, col3 = st.columns(3)
-
-    # Wrapping them in st.container(border=True) creates a sleek outline card!
-    with col1:
+    # Encapsulated KPIs in boxes
+    col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+    with col_kpi1:
         with st.container(border=True):
             st.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
-    with col2:
+    with col_kpi2:
         with st.container(border=True):
-            st.metric("Current Flow of Beer", velocity_str)
-    with col3:
+            st.metric("Flow of Beer", velocity_str)
+    with col_kpi3:
         with st.container(border=True):
             st.metric("Estimated Finish Date", eta_str)
 
-    st.divider()
+    # Progress bar HTML (Restored custom background block style)
+    st.markdown(f"""
+        <div style="background-color: rgba(128, 128, 128, 0.15); border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 4px; height: 16px; width: 100%; position: relative; overflow: hidden; margin-top: 8px; margin-bottom: 16px;">
+            <div style="background-color: {GLOBAL_COLOUR}; height: 100%; width: {min(progress_pct * 100, 100)}%;"></div>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; padding-left: 8px; font-size: 0.65rem; font-weight: 800; color: white; text-shadow: 0px 1px 2px rgba(0,0,0,0.8);">{math.floor(progress_pct * 100)}%</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # --- SECTION 2: LEADERBOARD & PIE CHART ---
+    # --- MAIN GRID: 3 COLUMNS ---
+    c1, c2, c3 = st.columns([1.1, 1, 1.1])
 
-    # quick helper function to generate 4th, 5th, etc. for the table
-    def get_ordinal(rank_num):
-        if 11 <= (rank_num % 100) <= 13:
-            return str(rank_num) + "th"
-        return str(rank_num) + {1: "st", 2: "nd", 3: "rd"}.get(rank_num % 10, "th")
+    # COLUMN 1: LEADERBOARDS
+    with c1:
+        with st.container(border=True):
+            st.markdown("###### All-Time Leaderboard")
+            total_days = max(1, (pd.Timestamp.now(tz='UTC') - df['Datetime'].min()).days)
+            lb_df = df['Beer Owner'].value_counts().reset_index()
+            lb_df.columns = ['Name', 'Beers']
+            lb_df['Spd'] = (lb_df['Beers'] / total_days).round(1)
 
+            t_names = lb_df['Name'].tolist() + ["N/A"] * 3
+            t_scores = lb_df['Beers'].tolist() + [0] * 3
+            t_spd = lb_df['Spd'].tolist() + [0.0] * 3
 
-    # left column is slightly wider to give the podium and table room to breathe
-    col_left, col_right = st.columns([3, 2], gap="large")
+            st.markdown(f"""
+                <div class='podium-container'>
+                    <div class='podium-box first-place'>
+                        <div class='podium-title'>1st 🥇</div>
+                        <div class='podium-name'>{t_names[0]}</div>
+                        <div class='podium-score'>{t_scores[0]}<br><span style='font-size:0.65rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[0]} beers / day</span></div>
+                    </div>
+                    <div class='podium-box second-place'>
+                        <div class='podium-title'>2nd 🥈</div>
+                        <div class='podium-name'>{t_names[1]}</div>
+                        <div class='podium-score'>{t_scores[1]}<br><span style='font-size:0.65rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[1]} beers / day</span></div>
+                    </div>
+                    <div class='podium-box third-place'>
+                        <div class='podium-title'>3rd 🥉</div>
+                        <div class='podium-name'>{t_names[2]}</div>
+                        <div class='podium-score'>{t_scores[2]}<br><span style='font-size:0.65rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[2]} beers / day</span></div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 
-    with col_left:
-        st.subheader("All-Time Leaderboard 🏆")
+            if len(lb_df) > 3:
+                rest_df = lb_df.iloc[3:].copy()
+                rest_df.insert(0, '#', [get_ordinal(i + 4) for i in range(len(rest_df))])
+                # Height expanded to ~395px to align perfectly with the bottoms of cols 2 and 3
+                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=395)
 
-        # calculate leaderboard totals
-        leaderboard_df = df['Beer Owner'].value_counts().reset_index()
-        leaderboard_df.columns = ['Beer Owner', 'Number of Beers']
+    # COLUMN 2: DISTRIBUTION & CALENDAR
+    with c2:
+        custom_colors = {"Tom": "#FFBA00", "Logan": "#D80030", "Archie": "#FF8A00", "Mills": "#00D5A0", "JJ": "#3461EF", "Moo": "#6DCFBA", "KSI": "#8936B6", "Ashton": "#A871FF", "Sam": "#E50184"}
+        with st.container(border=True):
+            st.markdown("###### Share of Total")
+            fig_pie = px.pie(lb_df, values='Beers', names='Name', hole=0.4, color='Name', color_discrete_map=custom_colors)
+            # Implemented texttemplate using HTML bold tags (<b>) to ensure crisp, bold lettering
+            fig_pie.update_traces(textposition='inside', texttemplate='<b>%{label}<br>%{percent}</b>', insidetextfont=dict(color='white', size=11))
+            fig_pie.update_layout(margin=dict(l=0, r=0, t=10, b=10), showlegend=False, height=225)
+            st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
 
-        # calculate total days the challenge has been running
-        total_running_days = max(1, (pd.Timestamp.now(tz='UTC') - df['Datetime'].min()).days)
-        leaderboard_df['Beers / Day'] = (leaderboard_df['Number of Beers'] / total_running_days).round(1)
-
-        # extract top 3 data safely
-        top_3_names = leaderboard_df['Beer Owner'].head(3).tolist()
-        top_3_scores = leaderboard_df['Number of Beers'].head(3).tolist()
-        top_3_bpd = leaderboard_df['Beers / Day'].head(3).tolist()
-
-        # pad with blanks if fewer than 3 people have drank so far
-        while len(top_3_names) < 3:
-            top_3_names.append("N/A")
-            top_3_scores.append(0)
-            top_3_bpd.append(0.0)
-
-        # vertical_alignment="bottom" ensures they all sit on the exact same baseline
-        with st.container(key="podium_container"):
-            pod1, pod2, pod3 = st.columns(3, vertical_alignment="bottom")
-
-            with pod1:
-                st.markdown(
-                    f"<div class='podium-box first-place' style='height: 310px; display: flex; flex-direction: column; justify-content: center;'>"
-                    f"<div class='podium-title'>1st 🥇</div>"
-                    f"<div class='podium-name'><b>{top_3_names[0]}</b></div>"
-                    f"<div class='podium-score'>🍺 {top_3_scores[0]} beers</div>"
-                    f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[0]} beers/day</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with pod2:
-                st.markdown(
-                    f"<div class='podium-box second-place' style='height: 250px; display: flex; flex-direction: column; justify-content: center;'>"
-                    f"<div class='podium-title'>2nd 🥈</div>"
-                    f"<div class='podium-name'><b>{top_3_names[1]}</b></div>"
-                    f"<div class='podium-score'>🍺 {top_3_scores[1]} beers</div>"
-                    f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[1]} beers/day</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-            with pod3:
-                st.markdown(
-                    f"<div class='podium-box third-place' style='height: 200px; display: flex; flex-direction: column; justify-content: center;'>"
-                    f"<div class='podium-title'>3rd 🥉</div>"
-                    f"<div class='podium-name'><b>{top_3_names[2]}</b></div>"
-                    f"<div class='podium-score'>🍺 {top_3_scores[2]} beers</div>"
-                    f"<div style='font-size: 0.8em; opacity: 0.7;'>~{top_3_bpd[2]} beers/day</div>"
-                    f"</div>",
-                    unsafe_allow_html=True
-                )
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # --- THE CONTENDERS (4TH PLACE ONWARD) ---
-        if len(leaderboard_df) > 3:
-            rest_of_pack = leaderboard_df.iloc[3:].copy()
-
-            # apply the ordinal function to create a rank column
-            rest_of_pack['Rank'] = [get_ordinal(i + 4) for i in range(len(rest_of_pack))]
-
-            # reorder the dataframe columns
-            rest_of_pack = rest_of_pack[['Rank', 'Beer Owner', 'Number of Beers', 'Beers / Day']]
-
-            st.dataframe(rest_of_pack, use_container_width=True, hide_index=True)
-
-    with col_right:
-        # --- PIE CHART ---
-        st.subheader("Percentage Contribution")
-
-        # map each person's name to a specific hex color
-        custom_pie_colors = {
-            "Tom": "#FFBA00",
-            "Logan": "#D80030",
-            "Archie": "#FF8A00",
-            "Mills": "#00D5A0",
-            "JJ": "#3461EF",
-            "Moo": "#6DCFBA",
-            "KSI": "#8936B6",
-            "Ashton": "#A871FF",
-            "Sam": "#E50184",
-        }
-
-        fig_pie = px.pie(
-            leaderboard_df,
-            values='Number of Beers',
-            names='Beer Owner',
-            template="plotly_dark",
-            hole=0.3,
-            color='Beer Owner',
-            color_discrete_map=custom_pie_colors
-        )
-        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
-        fig_pie.update_layout(margin=dict(l=0, r=0, t=30, b=0), showlegend=False)
-        st.plotly_chart(fig_pie, use_container_width=True)
-
-        st.divider()
-
-        # --- TOP 3 LAST 30 DAYS ---
-        st.subheader("Last 30 Days: Top 3")
-
-        thirty_days_ago = pd.Timestamp.now(tz='UTC') - pd.DateOffset(days=30)
-        last_month_df = df[df['Datetime'] >= thirty_days_ago]
-
-        if not last_month_df.empty:
-            last_month_lb = last_month_df['Beer Owner'].value_counts().reset_index()
-            last_month_lb.columns = ['Beer Owner', 'Number of Beers']
-
-            # isolate the top 3 safely
-            top_3_lm = last_month_lb.head(3).copy()
-            top_3_lm['Rank'] = [get_ordinal(i + 1) for i in range(len(top_3_lm))]
-            top_3_lm = top_3_lm[['Rank', 'Beer Owner', 'Number of Beers']]
-
-            st.dataframe(top_3_lm, use_container_width=True, hide_index=True)
-        else:
-            st.info("No beers logged in the last 30 days.")
-
-    st.divider()
-
-    # --- SECTION 3: LINE CHART & DAILY VOLUME CALENDAR ---
-
-    col_line, col_cal = st.columns([3, 2], gap="large")
-
-    with col_line:
-        # cumulative line chart
-        st.subheader("Cumulative Beers Over Time")
-        daily_counts_df = df.set_index('Datetime').resample('D').size().cumsum().reset_index()
-        daily_counts_df.columns = ['Date', 'Total Beers']
-
-        fig_line = px.line(daily_counts_df, x='Date', y='Total Beers', template="plotly_dark")
-        fig_line.update_traces(line_color=GLOBAL_COLOUR, line_width=3)
-        fig_line.update_layout(margin=dict(l=0, r=0, t=30, b=0), xaxis_title="", yaxis_title="", height=320)
-        st.plotly_chart(fig_line, use_container_width=True)
-
-    with col_cal:
-        st.subheader("Daily Volume")
-
-
-        def build_calendar_data(input_df):
-            """builds a mon-sun x week grid of daily beer counts."""
-            daily_series = input_df.groupby(input_df['Datetime'].dt.date).size()
-
-            today_date = datetime.now(timezone.utc).date()
+        with st.container(border=True):
+            st.markdown("###### Activity Heatmap")
+            daily_series = df.groupby(df['Datetime'].dt.date).size()
+            today_date = current_time.date()
             start_dt = daily_series.index.min()
+            pad_start = start_dt - pd.Timedelta(days=start_dt.weekday())
+            pad_end = today_date + pd.Timedelta(days=(6 - today_date.weekday()))
+            dates = pd.date_range(pad_start, pad_end, freq='D')
 
-            pad_start_dt = start_dt - pd.Timedelta(days=start_dt.weekday())
-            pad_end_dt = today_date + pd.Timedelta(days=(6 - today_date.weekday()))
-            full_date_range = pd.date_range(pad_start_dt, pad_end_dt, freq='D')
+            num_wks = len(dates) // 7
+            z_grid = [[None] * num_wks for _ in range(7)]
+            m_labels = {}
+            l_month = None
 
-            total_weeks = len(full_date_range) // 7
-            z_grid = [[None] * total_weeks for _ in range(7)]
-            hover_text = [[""] * total_weeks for _ in range(7)]
-            months_dict = {}
+            for i, d in enumerate(dates):
+                if start_dt <= d.date() <= today_date: z_grid[d.weekday()][i // 7] = int(daily_series.get(d.date(), 0))
+                if d.day == 1 or i == 0:
+                    if d.strftime('%b') != l_month:
+                        m_labels[i // 7] = d.strftime('%b')
+                        l_month = d.strftime('%b')
 
-            last_month_str = None
-            for idx, d_obj in enumerate(full_date_range):
-                w_idx = idx // 7
-                d_idx = d_obj.weekday()
-                d_only = d_obj.date()
+            r, g, b = tuple(int(GLOBAL_COLOUR.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4))
 
-                # hide future dates or dates before the challenge started
-                if d_only > today_date or d_only < start_dt:
-                    val = None
-                else:
-                    val = int(daily_series.get(d_only, 0))
+            # Using neutral RGBA for zero-values works gracefully on both Light and Dark mode
+            colors = [[0.0, "rgba(128, 128, 128, 0.15)"], [0.001, "rgba(128, 128, 128, 0.15)"], [0.001, f"rgba({r},{g},{b},0.3)"], [0.5, f"rgba({r},{g},{b},0.7)"], [1.0, f"rgb({r},{g},{b})"]]
 
-                z_grid[d_idx][w_idx] = val
-                beer_label = "beer" if val == 1 else "beers"
-                hover_text[d_idx][w_idx] = (
-                    f"{d_obj.strftime('%a %d %b %Y')}<br>"
-                    f"{'No data yet' if val is None else f'{val} {beer_label}'}"
-                )
-
-                if d_obj.day == 1 or idx == 0:
-                    if d_obj.strftime('%b') != last_month_str:
-                        months_dict[w_idx] = d_obj.strftime('%b')
-                        last_month_str = d_obj.strftime('%b')
-
-            current_today_pos = None
-            for idx, d_obj in enumerate(full_date_range):
-                if d_obj.date() == today_date:
-                    current_today_pos = (idx % 7, idx // 7)
-                    break
-
-            return z_grid, hover_text, months_dict, total_weeks, current_today_pos, daily_series
-
-
-        # generate calendar data
-        z_data, hover_data, month_labels, num_weeks, today_position, raw_daily_counts = build_calendar_data(df)
-        day_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-        max_daily_count = max(1, raw_daily_counts.max())
-        eps = 0.001
-
-        # 1. Convert your GLOBAL_COLOUR hex into RGB numbers
-        hex_color = GLOBAL_COLOUR.lstrip('#')
-        r, g, b = tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
-
-        # 2. Build the color scale using Plotly's supported rgba() format
-        heatmap_colors = [
-            [0.0, "#161b22"],  # 0 beers: Dark grey background
-            [eps, "#161b22"],  # Threshold anchor
-            [eps, f"rgba({r}, {g}, {b}, 0.25)"],  # Low beers: 25% opacity
-            [0.5, f"rgba({r}, {g}, {b}, 0.60)"],  # Mid beers: 60% opacity
-            [1.0, f"rgb({r}, {g}, {b})"]  # Max beers: 100% solid global color
-        ]
-
-        fig_cal = go.Figure(data=go.Heatmap(
-            z=z_data,
-            x=list(range(num_weeks)),
-            y=day_labels,
-            text=hover_data,
-            hoverinfo='text',
-            colorscale=heatmap_colors,
-            zmin=0,
-            zmax=max_daily_count,
-            xgap=3,
-            ygap=3,
-            showscale=True,
-            colorbar=dict(title="Beers", thickness=10, len=0.5, tickmode='array'),
-        ))
-
-        fig_cal.update_layout(
-            template="plotly_dark",
-            margin=dict(l=0, r=0, t=40, b=0),
-            height=280,
-            xaxis=dict(
-                showgrid=False,
-                tickmode='array',
-                tickvals=list(month_labels.keys()),
-                ticktext=list(month_labels.values()),
-                side='top',
-                tickfont=dict(size=11),
-            ),
-            yaxis=dict(showgrid=False, autorange='reversed', tickfont=dict(size=10)),
-        )
-
-        # outline the current day
-        if today_position:
-            day_coord, week_coord = today_position
-            fig_cal.add_shape(
-                type="rect",
-                x0=week_coord - 0.5, x1=week_coord + 0.5,
-                y0=day_coord - 0.5, y1=day_coord + 0.5,
-                line=dict(color="white", width=2),
+            fig_cal = go.Figure(data=go.Heatmap(z=z_grid, colorscale=colors, zmin=0, zmax=max(1, daily_series.max()), xgap=1, ygap=1, showscale=False))
+            fig_cal.update_layout(
+                height=180, margin=dict(l=20, r=5, t=20, b=5),
+                xaxis=dict(showgrid=False, zeroline=False, tickmode='array', tickvals=list(m_labels.keys()), ticktext=list(m_labels.values()), side='top', tickfont=dict(size=9)),
+                yaxis=dict(showgrid=False, zeroline=False, autorange='reversed', ticktext=['M', 'T', 'W', 'T', 'F', 'S', 'S'], tickvals=[0, 1, 2, 3, 4, 5, 6], tickfont=dict(size=8))
             )
+            st.plotly_chart(fig_cal, use_container_width=True, config={'displayModeBar': False})
 
-        st.plotly_chart(fig_cal, use_container_width=True)
+    # COLUMN 3: TRENDS & TEMPORAL
+    with c3:
+        with st.container(border=True):
+            st.markdown("###### Cumulative Beers")
+            daily_counts = df.set_index('Datetime').resample('D').size().cumsum().reset_index()
+            daily_counts.columns = ['Date', 'Beers']
+            fig_line = px.line(daily_counts, x='Date', y='Beers')
+            fig_line.update_traces(line_color=GLOBAL_COLOUR, line_width=2, fill='tozeroy', fillcolor=f"rgba({r},{g},{b},0.1)")
+            fig_line.update_layout(margin=dict(l=0, r=10, t=5, b=0), xaxis_title="", yaxis_title="", height=225, xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=9)), yaxis=dict(zeroline=False, tickfont=dict(size=9)))
+            st.plotly_chart(fig_line, use_container_width=True, config={'displayModeBar': False})
 
-    st.divider()
+        cc1, cc2 = st.columns(2)
+        with cc1:
+            with st.container(border=True):
+                st.markdown("###### Peak Times (UTC)")
+                hour_map = {h: f"{h % 12 or 12}{'AM' if h < 12 else 'PM'}" for h in range(24)}
+                temp_df = df.copy()
+                temp_df['Hr'] = temp_df['Datetime'].dt.hour.map(hour_map)
+                order = [f"{h % 12 or 12}{'AM' if h < 12 else 'PM'}" for h in [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4]]
+                h_counts = temp_df['Hr'].value_counts().reset_index()
+                fig_h = px.bar(h_counts, x='Hr', y='count', category_orders={"Hr": order})
+                fig_h.update_traces(marker_color=GLOBAL_COLOUR)
+                fig_h.update_layout(margin=dict(l=0, r=0, t=5, b=0), xaxis_title="", yaxis_title="", height=180, xaxis=dict(zeroline=False, tickfont=dict(size=8)), yaxis=dict(zeroline=False, visible=False))
+                st.plotly_chart(fig_h, use_container_width=True, config={'displayModeBar': False})
 
-    # --- SECTION 4: TEMPORAL ANALYTICS ---
-
-    col_time1, col_time2 = st.columns(2)
-
-    # create a localized copy of df to prevent adding temporary columns to the main dataset
-    temporal_df = df.copy()
-
-    with col_time1:
-        st.subheader("Peak Beer Times (UTC)")
-
-        # define the exact order for the x-axis (5 AM to 4 AM)
-        custom_hour_order = [
-            "5 AM", "6 AM", "7 AM", "8 AM", "9 AM", "10 AM", "11 AM", "12 PM",
-            "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM",
-            "9 PM", "10 PM", "11 PM", "12 AM", "1 AM", "2 AM", "3 AM", "4 AM"
-        ]
-
-        # create a mapping dictionary to convert 24h time to friendly labels
-        hour_mapping = {
-            5: "5 AM", 6: "6 AM", 7: "7 AM", 8: "8 AM", 9: "9 AM", 10: "10 AM", 11: "11 AM",
-            12: "12 PM", 13: "1 PM", 14: "2 PM", 15: "3 PM", 16: "4 PM", 17: "5 PM", 18: "6 PM",
-            19: "7 PM", 20: "8 PM", 21: "9 PM", 22: "10 PM", 23: "11 PM", 0: "12 AM",
-            1: "1 AM", 2: "2 AM", 3: "3 AM", 4: "4 AM"
-        }
-
-        # extract the hour and map it
-        temporal_df['Hour_Label'] = temporal_df['Datetime'].dt.hour.map(hour_mapping)
-
-        # count beers per hour
-        hourly_counts_df = temporal_df['Hour_Label'].value_counts().reset_index()
-        hourly_counts_df.columns = ['Time', 'Beers']
-
-        # build the chart forcing the custom x-axis order
-        fig_hours = px.bar(
-            hourly_counts_df,
-            x='Time',
-            y='Beers',
-            category_orders={"Time": custom_hour_order}
-        )
-
-        fig_hours.update_traces(marker_color=GLOBAL_COLOUR)
-        fig_hours.update_layout(xaxis_title="Hour of Day", yaxis_title="Total Beers")
-
-        st.plotly_chart(fig_hours, use_container_width=True)
-
-    with col_time2:
-        st.subheader("Peak Beer Days (UTC)")
-
-        # group by day of week and enforce monday-sunday order
-        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        temporal_df['Day'] = temporal_df['Datetime'].dt.day_name()
-
-        day_counts_df = temporal_df['Day'].value_counts().reindex(days_order, fill_value=0).reset_index()
-        day_counts_df.columns = ['Day', 'Count']
-
-        fig_days = px.bar(day_counts_df, x='Day', y='Count', template="plotly_dark")
-        fig_days.update_traces(marker_color=GLOBAL_COLOUR)
-        fig_days.update_layout(xaxis_title="Day of Week", yaxis_title="Total Beers")
-        st.plotly_chart(fig_days, use_container_width=True)
+        with cc2:
+            with st.container(border=True):
+                st.markdown("###### Peak Days (UTC)")
+                temp_df['Day'] = temp_df['Datetime'].dt.day_name().str[:3]
+                d_counts = temp_df['Day'].value_counts().reindex(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], fill_value=0).reset_index()
+                fig_d = px.bar(d_counts, x='Day', y='count')
+                fig_d.update_traces(marker_color=GLOBAL_COLOUR)
+                fig_d.update_layout(margin=dict(l=0, r=0, t=5, b=0), xaxis_title="", yaxis_title="", height=180, xaxis=dict(zeroline=False, tickfont=dict(size=8)), yaxis=dict(zeroline=False, visible=False))
+                st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': False})
 
 with tab2:
-    # --- SECTION 5: FULL BEER LIST ---
+    # Add a visual gap before the list components
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-    # 1. get the list of owners sorted by who has the most beers (descending)
-    owner_counts = df['Beer Owner'].value_counts()
-    sorted_owners = owner_counts.index.tolist()
-
-    # using unicode bold characters so it renders properly in the dropdown
-    filter_options = ["𝗔𝗹𝗹"] + sorted_owners
-
-    # 2. create two columns with the [2, 1] scale
-    col_title, col_filter = st.columns([2, 1], vertical_alignment="bottom")
-
-    with col_title:
-        st.subheader("Beer List")
-
+    col_title2, col_filter = st.columns([4, 1], vertical_alignment="center")
+    with col_title2:
+        st.markdown("###### Complete Log Data")
     with col_filter:
-        # css to make the popover look like a standard left-aligned dropdown
-        # AND successfully target the first <label> to create the divider gap
-        st.markdown("""
-            <style>
-            /* Left-align the popover button text */
-            div[data-testid="stPopover"] button {
-                justify-content: flex-start !important;
-            }
-            div[data-testid="stPopover"] button p {
-                text-align: left !important;
-            }
-            /* Add gap and line under the first radio option ("All") */
-            div[role="radiogroup"] > label:first-of-type {
-                margin-bottom: 12px !important;
-                padding-bottom: 12px !important;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
+        owners_sorted = df['Beer Owner'].value_counts().index.tolist()
+        with st.popover("Filter Owner", use_container_width=True):
+            selected_owner = st.radio("Person:", ["𝗔𝗹𝗹"] + owners_sorted, label_visibility="collapsed")
 
-        # replace selectbox with a popover + radio to prevent the mobile keyboard
-        with st.popover("Filter by Beer Owner", use_container_width=True):
-            selected_owner = st.radio(
-                "Filter by Person:",
-                filter_options,
-                label_visibility="collapsed"
-            )
+    # Fast processing: duplicate Datetime to use native Streamlit frontend formatting
+    display_df = df[['Datetime', 'Beer Owner']].sort_values(by="Datetime", ascending=False).reset_index(drop=True)
+    display_df.insert(0, "Beer #", range(len(display_df), 0, -1))
 
-    # 3. add a small gap between the title row and the table
-    st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
-
-    # 4. establish the base chronological list to lock in the correct overall 'beer #'
-    full_beers_list = df.sort_values(by="Datetime", ascending=False).copy()
-    full_beers_list = full_beers_list.reset_index(drop=True)
-    full_beers_list["Beer #"] = range(len(full_beers_list), 0, -1)
-
-    # 5. apply the filter if a specific person is selected (checking against the unicode string)
     if selected_owner != "𝗔𝗹𝗹":
-        full_beers_list = full_beers_list[full_beers_list['Beer Owner'] == selected_owner]
+        display_df = display_df[display_df['Beer Owner'] == selected_owner]
 
-    # 6. format dates and times for display
-    full_beers_list['Date'] = full_beers_list['Datetime'].dt.strftime('%d %b %Y')
-    full_beers_list['Time (UTC)'] = full_beers_list['Datetime'].dt.strftime('%H:%M')
+    # Create dummy columns to map the Datetime object via column_config
+    display_df['Date'] = display_df['Datetime']
+    display_df['Time (UTC)'] = display_df['Datetime']
 
-    # 7. lock in the final columns
-    final_display_df = full_beers_list[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']]
-
+    # Use native column config formatting rather than slow string conversions
     st.dataframe(
-        final_display_df,
+        display_df[['Beer #', 'Beer Owner', 'Date', 'Time (UTC)']],
         use_container_width=True,
         hide_index=True,
-        height=700
+        height=670,
+        column_config={
+            "Date": st.column_config.DatetimeColumn("Date", format="DD MMM YYYY"),
+            "Time (UTC)": st.column_config.DatetimeColumn("Time (UTC)", format="HH:mm")
+        }
     )
 
-    # dynamically update the caption to show how many beers are visible vs the overall total
-    st.caption(f"Showing {len(final_display_df):,} of {len(df):,} total beers")
-
+    st.markdown(f"<div style='font-size: 0.75rem; color: var(--text-color); opacity: 0.7; padding-top: 5px;'>Showing {len(display_df):,} of {len(df):,} total beers</div>", unsafe_allow_html=True)
