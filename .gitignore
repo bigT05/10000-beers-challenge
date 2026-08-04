@@ -1,10 +1,7 @@
-# PyCharm system folders
+# Folders
 .idea/
+Snapchat Beer Extractor/
+website/
 
 # Local testing files
-10000_beers_log.csv
-local.html
-chat_history.json
-snapchat_beer_extractor.py
-website
 test_index.html

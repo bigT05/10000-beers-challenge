@@ -88,7 +88,6 @@ st.markdown(f"""
         border-radius: 10px !important;
     }}
     
-
     /* 6. SUBTLE SIDEBAR ACCENTS */
     [data-testid="stSidebar"] hr {{
         border-bottom-color: {GLOBAL_COLOUR} !important;
@@ -287,7 +286,7 @@ def format_custom_date(input_dt):
 
 with st.sidebar:
     # profile logo header
-    st.image("profile.jpg", clamp=True)
+    st.image("assets/profile.jpg", clamp=True)
 
     st.divider()
 
