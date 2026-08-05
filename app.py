@@ -20,6 +20,15 @@ if "layout_mode" not in st.session_state:
     q_layout = st.query_params.get("layout", "saas")
     st.session_state["layout_mode"] = "Classic (Scroll)" if "classic" in q_layout else "SaaS (Compact)"
 
+
+def sync_layout():
+    """Updates the iframe query parameter when the setting is changed"""
+    if st.session_state["layout_mode"] == "Classic (Scroll)":
+        st.query_params["layout"] = "classic"
+    else:
+        st.query_params["layout"] = "saas"
+
+
 # --- CSS DEFINITIONS ---
 
 SAAS_CSS = f"""
@@ -54,19 +63,23 @@ SAAS_CSS = f"""
     [data-testid="stSidebar"] p {{ font-size: 0.8rem !important; margin-bottom: 0.2rem !important; }}
 
     .podium-container {{ display: flex; gap: 8px; margin-bottom: 8px; }}
-    .podium-box {{ flex: 1; text-align: center; padding: 6px; border-radius: 6px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
+    .podium-box {{ flex: 1; text-align: center; padding: 10px 6px; border-radius: 6px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
     .first-place {{ border-top: 3px solid #FFD700; }}
     .second-place {{ border-top: 3px solid #C0C0C0; }}
     .third-place {{ border-top: 3px solid #CD7F32; }}
-    .podium-title {{ font-size: 0.75rem; font-weight: bold; margin-bottom: 2px; color: var(--text-color); }}
-    .podium-name {{ font-size: 0.9rem; font-weight: bold; margin-bottom: 0px; color: var(--text-color); }}
-    .podium-score {{ font-size: 0.8rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.1; }}
+    .podium-title {{ font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
+    .podium-name {{ font-size: 1.1rem; font-weight: bold; margin-bottom: 2px; color: var(--text-color); }}
+    .podium-score {{ font-size: 0.95rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.2; }}
 
     [data-testid="stVerticalBlockBorderWrapper"] > div {{ padding: 0.7rem !important; border-radius: 8px !important; }}
     [data-testid="stDataFrame"] {{ margin-bottom: 0px !important; }}
     div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
     div[data-testid="stPopover"] button p {{ text-align: left !important; }}
     div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 12px !important; padding-bottom: 12px !important; border-bottom: 1px solid var(--border-color) !important; }}
+
+    /* FIX FOR SIDEBAR RADIO BUTTONS GAP */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 0px !important; padding-bottom: 0px !important; border-bottom: none !important; }}
+    [data-testid="stSidebar"] div[role="radiogroup"] {{ gap: 0.3rem !important; }}
     </style>
 """
 
@@ -121,6 +134,10 @@ CLASSIC_CSS = f"""
     div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
     div[data-testid="stPopover"] button p {{ text-align: left !important; }}
     div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 12px !important; padding-bottom: 12px !important; border-bottom: 1px solid var(--border-color) !important; }}
+
+    /* FIX FOR SIDEBAR RADIO BUTTONS GAP */
+    [data-testid="stSidebar"] div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 0px !important; padding-bottom: 0px !important; border-bottom: none !important; }}
+    [data-testid="stSidebar"] div[role="radiogroup"] {{ gap: 0.3rem !important; }}
     </style>
 """
 
@@ -211,25 +228,37 @@ def get_ordinal(rank_num):
 
 
 # ----------------------------------------------------------------------
-# SIDEBAR
+# SIDEBAR DYNAMIC RENDERING
 # ----------------------------------------------------------------------
 
 with st.sidebar:
     st.image("assets/profile.jpg", clamp=True)
-    st.markdown("---")
 
-    st.markdown("###### Recent Beers 🍺")
-    for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
-        display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
-        st.markdown(f"<div style='font-size: 0.75rem; padding: 2px 0;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>", unsafe_allow_html=True)
+    is_saas = st.session_state["layout_mode"] == "SaaS (Compact)"
 
-    st.markdown("---")
+    if is_saas:
+        st.markdown("---")
+        st.markdown("###### Recent Beers 🍺")
+        for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
+            display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
+            st.markdown(f"<div style='font-size: 0.75rem; padding: 2px 0;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>", unsafe_allow_html=True)
 
-    st.markdown("###### ⚙️ Settings")
+        st.markdown("---")
+        st.markdown("###### ⚙️ Settings")
+    else:
+        st.divider()
+        st.subheader("Recent Beers* 🍺", anchor=False)
+        for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
+            display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
+            st.markdown(f"**{beer_row['Beer Owner']}** - *{display_time}*")
+
+        st.divider()
+        st.subheader("⚙️ Settings", anchor=False)
+
     layout_choice = st.radio(
         "Appearance",
         ["SaaS (Compact)", "Classic (Scroll)"],
-        index=0 if st.session_state["layout_mode"] == "SaaS (Compact)" else 1,
+        index=0 if is_saas else 1,
         label_visibility="collapsed"
     )
 
@@ -238,20 +267,34 @@ with st.sidebar:
         st.session_state["layout_mode"] = layout_choice
         st.rerun()
 
-    st.markdown("---")
-
-    st.markdown("###### System Status")
-    st.markdown(f"""
-        <div style="font-size: 0.75rem; margin-bottom: 10px;">
-            <div style="opacity:0.7">Last Entry: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(manual_sync_dt)}</span></div>
-            <div style="opacity:0.7">Last Sync: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(last_sync_dt)}</span></div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Reloading clears data cache, but session_state["layout_mode"] permanently persists during the session!
-    if st.button("↻ Reload", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
+    if is_saas:
+        st.markdown("---")
+        st.markdown("###### System Status")
+        st.markdown(f"""
+            <div style="font-size: 0.75rem; margin-bottom: 10px;">
+                <div style="opacity:0.7">Last Entry: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(manual_sync_dt)}</span></div>
+                <div style="opacity:0.7">Last Sync: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(last_sync_dt)}</span></div>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("↻ Reload", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
+    else:
+        st.divider()
+        st.subheader("System Status", anchor=False)
+        st.markdown(f"""
+            <div style="background-color: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.1); border-left: 4px solid {GLOBAL_COLOUR}; border-radius: 5px; padding: 12px; margin-bottom: 10px;">
+                <div style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7; margin-bottom: 5px;">Last Spreadsheet Update</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: {GLOBAL_COLOUR};">{time_ago(manual_sync_dt)}</div>
+            </div>
+            <div style="background-color: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.1); border-left: 4px solid {GLOBAL_COLOUR}; border-radius: 5px; padding: 12px; margin-bottom: 15px;">
+                <div style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7; margin-bottom: 5px;">Last Time Sync</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: {GLOBAL_COLOUR};">{time_ago(last_sync_dt)}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        if st.button("Reload Database", use_container_width=True):
+            st.cache_data.clear()
+            st.rerun()
 
 # Apply the appropriate CSS based on current state
 if st.session_state["layout_mode"] == "SaaS (Compact)":
@@ -409,22 +452,22 @@ with tab1:
                         <div class='podium-box first-place'>
                             <div class='podium-title'>1st 🥇</div>
                             <div class='podium-name'>{t_names[0]}</div>
-                            <div class='podium-score'>{t_scores[0]}<br><span style='font-size:0.65rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[0]} beers / day</span></div>
+                            <div class='podium-score'>{t_scores[0]}<br><span style='font-size:0.75rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[0]} beers / day</span></div>
                         </div>
                         <div class='podium-box second-place'>
                             <div class='podium-title'>2nd 🥈</div>
                             <div class='podium-name'>{t_names[1]}</div>
-                            <div class='podium-score'>{t_scores[1]}<br><span style='font-size:0.65rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[1]} beers / day</span></div>
+                            <div class='podium-score'>{t_scores[1]}<br><span style='font-size:0.75rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[1]} beers / day</span></div>
                         </div>
                         <div class='podium-box third-place'>
                             <div class='podium-title'>3rd 🥉</div>
                             <div class='podium-name'>{t_names[2]}</div>
-                            <div class='podium-score'>{t_scores[2]}<br><span style='font-size:0.65rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[2]} beers / day</span></div>
+                            <div class='podium-score'>{t_scores[2]}<br><span style='font-size:0.75rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[2]} beers / day</span></div>
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
-                # Precision height adjustment to 396px to flawlessly fit exactly ranks 4-13
-                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=396)
+                # Height adjusted to 370px to compensate for the larger podium boxes and keep bottoms aligned
+                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=370)
 
         with c2:
             with st.container(border=True):
