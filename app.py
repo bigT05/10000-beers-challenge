@@ -4,14 +4,21 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timezone
 import math
+import streamlit.components.v1 as components
 
 # ----------------------------------------------------------------------
-# PAGE CONFIGURATION
+# PAGE CONFIGURATION & STATE
 # ----------------------------------------------------------------------
 
 GLOBAL_COLOUR = "#EE7846"
 
 st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide", initial_sidebar_state="expanded")
+
+# Initialize persistent session state for the layout setting
+# It reads the query parameter passed from the parent HTML on the very first load
+if "layout_mode" not in st.session_state:
+    q_layout = st.query_params.get("layout", "saas")
+    st.session_state["layout_mode"] = "Classic (Scroll)" if "classic" in q_layout else "SaaS (Compact)"
 
 # --- CSS DEFINITIONS ---
 
@@ -204,12 +211,11 @@ def get_ordinal(rank_num):
 
 
 # ----------------------------------------------------------------------
-# SIDEBAR & SETTINGS
+# SIDEBAR
 # ----------------------------------------------------------------------
 
 with st.sidebar:
     st.image("assets/profile.jpg", clamp=True)
-
     st.markdown("---")
 
     st.markdown("###### Recent Beers 🍺")
@@ -218,8 +224,19 @@ with st.sidebar:
         st.markdown(f"<div style='font-size: 0.75rem; padding: 2px 0;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>", unsafe_allow_html=True)
 
     st.markdown("---")
+
     st.markdown("###### ⚙️ Settings")
-    layout_mode = st.radio("Appearance", ["SaaS (Compact)", "Classic (Scroll)"], label_visibility="collapsed")
+    layout_choice = st.radio(
+        "Appearance",
+        ["SaaS (Compact)", "Classic (Scroll)"],
+        index=0 if st.session_state["layout_mode"] == "SaaS (Compact)" else 1,
+        label_visibility="collapsed"
+    )
+
+    # Update state only if changed to avoid unnecessary reruns
+    if layout_choice != st.session_state["layout_mode"]:
+        st.session_state["layout_mode"] = layout_choice
+        st.rerun()
 
     st.markdown("---")
 
@@ -230,15 +247,30 @@ with st.sidebar:
             <div style="opacity:0.7">Last Sync: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(last_sync_dt)}</span></div>
         </div>
     """, unsafe_allow_html=True)
+
+    # Reloading clears data cache, but session_state["layout_mode"] permanently persists during the session!
     if st.button("↻ Reload", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-# Apply the appropriate CSS based on the toggle
-if layout_mode == "SaaS (Compact)":
+# Apply the appropriate CSS based on current state
+if st.session_state["layout_mode"] == "SaaS (Compact)":
     st.markdown(SAAS_CSS, unsafe_allow_html=True)
 else:
     st.markdown(CLASSIC_CSS, unsafe_allow_html=True)
+
+# ----------------------------------------------------------------------
+# IFRAME PERSISTENCE BRIDGE
+# ----------------------------------------------------------------------
+# Silently broadcasts the user's choice to your parent HTML website.
+# The HTML website catches this and saves it to its LocalStorage.
+layout_val = "classic" if st.session_state["layout_mode"] == "Classic (Scroll)" else "saas"
+components.html(f"""
+    <script>
+        // Send message to the topmost window (your .beer website)
+        window.top.postMessage({{type: 'SET_LAYOUT', layout: '{layout_val}'}}, '*');
+    </script>
+""", height=0, width=0)
 
 # ----------------------------------------------------------------------
 # PRE-COMPUTE SHARED CHART DATA (For Performance)
@@ -341,7 +373,7 @@ fig_d.update_layout(margin=dict(l=0, r=0, t=5, b=0), xaxis_title="", yaxis_title
 # MAIN RENDERING
 # ----------------------------------------------------------------------
 
-if layout_mode == "SaaS (Compact)":
+if st.session_state["layout_mode"] == "SaaS (Compact)":
     st.markdown("<h2 style='margin-bottom: 0px;'>🍻 10,000 Beers Challenge</h2>", unsafe_allow_html=True)
 else:
     st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h1>", unsafe_allow_html=True)
@@ -349,7 +381,7 @@ else:
 tab1, tab2 = st.tabs(["Dashboard", "Full Beer List"])
 
 with tab1:
-    if layout_mode == "SaaS (Compact)":
+    if st.session_state["layout_mode"] == "SaaS (Compact)":
         # ---------------- SaaS LAYOUT ----------------
         st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
 
@@ -502,7 +534,7 @@ with tab2:
 
     col_title2, col_filter = st.columns([4, 1], vertical_alignment="center")
     with col_title2:
-        if layout_mode == "SaaS (Compact)":
+        if st.session_state["layout_mode"] == "SaaS (Compact)":
             st.markdown("###### Complete Log Data")
         else:
             st.subheader("Complete Log Data")
