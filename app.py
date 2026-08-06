@@ -14,20 +14,14 @@ GLOBAL_COLOUR = "#EE7846"
 
 st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide", initial_sidebar_state="expanded")
 
-# Initialize persistent session state for the layout setting
-# It reads the query parameter passed from the parent HTML on the very first load
+# Initialize persistent session state for the layout & color settings
 if "layout_mode" not in st.session_state:
     q_layout = st.query_params.get("layout", "saas")
     st.session_state["layout_mode"] = "Classic (Scroll)" if "classic" in q_layout else "SaaS (Compact)"
 
-
-def sync_layout():
-    """Updates the iframe query parameter when the setting is changed"""
-    if st.session_state["layout_mode"] == "Classic (Scroll)":
-        st.query_params["layout"] = "classic"
-    else:
-        st.query_params["layout"] = "saas"
-
+if "color_scheme" not in st.session_state:
+    q_color = st.query_params.get("color", "custom")
+    st.session_state["color_scheme"] = "Default Theme" if "default" in q_color else "Custom (Assigned Colors)"
 
 # --- CSS DEFINITIONS ---
 
@@ -63,13 +57,13 @@ SAAS_CSS = f"""
     [data-testid="stSidebar"] p {{ font-size: 0.8rem !important; margin-bottom: 0.2rem !important; }}
 
     .podium-container {{ display: flex; gap: 8px; margin-bottom: 8px; }}
-    .podium-box {{ flex: 1; text-align: center; padding: 10px 6px; border-radius: 6px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
+    .podium-box {{ flex: 1; text-align: center; padding: 14px 8px; border-radius: 8px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
     .first-place {{ border-top: 3px solid #FFD700; }}
     .second-place {{ border-top: 3px solid #C0C0C0; }}
     .third-place {{ border-top: 3px solid #CD7F32; }}
-    .podium-title {{ font-size: 0.85rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
-    .podium-name {{ font-size: 1.1rem; font-weight: bold; margin-bottom: 2px; color: var(--text-color); }}
-    .podium-score {{ font-size: 0.95rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.2; }}
+    .podium-title {{ font-size: 1.05rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
+    .podium-name {{ font-size: 1.35rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
+    .podium-score {{ font-size: 1.05rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.2; }}
 
     [data-testid="stVerticalBlockBorderWrapper"] > div {{ padding: 0.7rem !important; border-radius: 8px !important; }}
     [data-testid="stDataFrame"] {{ margin-bottom: 0px !important; }}
@@ -242,30 +236,12 @@ with st.sidebar:
         for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
             display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
             st.markdown(f"<div style='font-size: 0.75rem; padding: 2px 0;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>", unsafe_allow_html=True)
-
-        st.markdown("---")
-        st.markdown("###### ⚙️ Settings")
     else:
         st.divider()
         st.subheader("Recent Beers* 🍺", anchor=False)
         for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
             display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
             st.markdown(f"**{beer_row['Beer Owner']}** - *{display_time}*")
-
-        st.divider()
-        st.subheader("⚙️ Settings", anchor=False)
-
-    layout_choice = st.radio(
-        "Appearance",
-        ["SaaS (Compact)", "Classic (Scroll)"],
-        index=0 if is_saas else 1,
-        label_visibility="collapsed"
-    )
-
-    # Update state only if changed to avoid unnecessary reruns
-    if layout_choice != st.session_state["layout_mode"]:
-        st.session_state["layout_mode"] = layout_choice
-        st.rerun()
 
     if is_saas:
         st.markdown("---")
@@ -308,10 +284,12 @@ else:
 # Silently broadcasts the user's choice to your parent HTML website.
 # The HTML website catches this and saves it to its LocalStorage.
 layout_val = "classic" if st.session_state["layout_mode"] == "Classic (Scroll)" else "saas"
+color_val = "default" if st.session_state["color_scheme"] == "Default Theme" else "custom"
+
 components.html(f"""
     <script>
         // Send message to the topmost window (your .beer website)
-        window.top.postMessage({{type: 'SET_LAYOUT', layout: '{layout_val}'}}, '*');
+        window.top.postMessage({{type: 'SET_PREFS', layout: '{layout_val}', color: '{color_val}'}}, '*');
     </script>
 """, height=0, width=0)
 
@@ -357,9 +335,13 @@ if not last_30_df.empty:
 else:
     lm_lb = pd.DataFrame()
 
-# 3. Pie Chart
-custom_colors = {"Tom": "#FFBA00", "Logan": "#D80030", "Archie": "#FF8A00", "Mills": "#00D5A0", "JJ": "#3461EF", "Moo": "#6DCFBA", "KSI": "#8936B6", "Ashton": "#A871FF", "Sam": "#E50184"}
-fig_pie = px.pie(lb_df, values='Beers', names='Name', hole=0.4, color='Name', color_discrete_map=custom_colors)
+# 3. Pie Chart (Now respects the setting tab)
+if st.session_state["color_scheme"] == "Custom (Assigned Colors)":
+    custom_colors = {"Tom": "#FFBA00", "Logan": "#D80030", "Archie": "#FF8A00", "Mills": "#00D5A0", "JJ": "#3461EF", "Moo": "#6DCFBA", "KSI": "#8936B6", "Ashton": "#A871FF", "Sam": "#E50184"}
+    fig_pie = px.pie(lb_df, values='Beers', names='Name', hole=0.4, color='Name', color_discrete_map=custom_colors)
+else:
+    fig_pie = px.pie(lb_df, values='Beers', names='Name', hole=0.4, color='Name')
+
 fig_pie.update_traces(textposition='inside', texttemplate='<b>%{label}<br>%{percent}</b>', insidetextfont=dict(color='white', size=11))
 fig_pie.update_layout(margin=dict(l=0, r=0, t=10, b=10), showlegend=False)
 
@@ -421,7 +403,7 @@ if st.session_state["layout_mode"] == "SaaS (Compact)":
 else:
     st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h1>", unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["Dashboard", "Full Beer List"])
+tab1, tab2, tab3 = st.tabs(["Dashboard", "Full Beer List", "⚙️ Settings"])
 
 with tab1:
     if st.session_state["layout_mode"] == "SaaS (Compact)":
@@ -452,22 +434,22 @@ with tab1:
                         <div class='podium-box first-place'>
                             <div class='podium-title'>1st 🥇</div>
                             <div class='podium-name'>{t_names[0]}</div>
-                            <div class='podium-score'>{t_scores[0]}<br><span style='font-size:0.75rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[0]} beers / day</span></div>
+                            <div class='podium-score'>{t_scores[0]}<br><span style='font-size:0.8rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[0]} beers / day</span></div>
                         </div>
                         <div class='podium-box second-place'>
                             <div class='podium-title'>2nd 🥈</div>
                             <div class='podium-name'>{t_names[1]}</div>
-                            <div class='podium-score'>{t_scores[1]}<br><span style='font-size:0.75rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[1]} beers / day</span></div>
+                            <div class='podium-score'>{t_scores[1]}<br><span style='font-size:0.8rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[1]} beers / day</span></div>
                         </div>
                         <div class='podium-box third-place'>
                             <div class='podium-title'>3rd 🥉</div>
                             <div class='podium-name'>{t_names[2]}</div>
-                            <div class='podium-score'>{t_scores[2]}<br><span style='font-size:0.75rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[2]} beers / day</span></div>
+                            <div class='podium-score'>{t_scores[2]}<br><span style='font-size:0.8rem; color:var(--text-color); font-weight:normal; opacity:0.7;'>~{t_spd[2]} beers / day</span></div>
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
-                # Height adjusted to 370px to compensate for the larger podium boxes and keep bottoms aligned
-                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=370)
+                # Height reduced to 345px to compensate for the larger padding/fonts in the podium boxes above
+                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=345)
 
         with c2:
             with st.container(border=True):
@@ -607,3 +589,32 @@ with tab2:
     )
 
     st.markdown(f"<div style='font-size: 0.75rem; color: var(--text-color); opacity: 0.7; padding-top: 5px;'>Showing {len(display_df):,} of {len(df):,} total beers</div>", unsafe_allow_html=True)
+
+with tab3:
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+    with st.container(border=True):
+        if st.session_state["layout_mode"] == "SaaS (Compact)":
+            st.markdown("###### Dashboard Preferences")
+        else:
+            st.subheader("Dashboard Preferences")
+
+        st.write("Customize how the dashboard looks and feels. These settings are saved automatically to your device.")
+
+        c_set1, c_set2 = st.columns(2)
+        with c_set1:
+            new_layout = st.radio(
+                "Layout Mode",
+                ["SaaS (Compact)", "Classic (Scroll)"],
+                index=0 if st.session_state["layout_mode"] == "SaaS (Compact)" else 1
+            )
+        with c_set2:
+            new_color = st.radio(
+                "Pie Chart Color Scheme",
+                ["Custom (Assigned Colors)", "Default Theme"],
+                index=0 if st.session_state["color_scheme"] == "Custom (Assigned Colors)" else 1
+            )
+
+        if new_layout != st.session_state["layout_mode"] or new_color != st.session_state["color_scheme"]:
+            st.session_state["layout_mode"] = new_layout
+            st.session_state["color_scheme"] = new_color
+            st.rerun()
