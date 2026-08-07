@@ -9,7 +9,9 @@ import streamlit.components.v1 as components
 # ----------------------------------------------------------------------
 # PAGE CONFIGURATION & STATE
 # ----------------------------------------------------------------------
+
 GLOBAL_COLOUR = "#EE7846"
+
 st.set_page_config(page_title="10,000 Beers Challenge", page_icon="🍻", layout="wide", initial_sidebar_state="expanded")
 
 # Initialize persistent session state for the layout & color settings
@@ -22,131 +24,120 @@ if "color_scheme" not in st.session_state:
     st.session_state["color_scheme"] = "Custom colours" if "custom" in q_color else "Uniform"
 
 # --- CSS DEFINITIONS ---
+
 SAAS_CSS = f"""
-<style>
-/* HEADER & TOP GAP: Forcefully drag the content up */
-header[data-testid="stHeader"] {{ background-color: transparent !important; height: 2.8rem !important; }}
-.block-container {{ padding-top: 2.5rem !important; padding-bottom: 0.5rem !important; padding-left: 1.25rem !important; padding-right: 1.25rem !important; max-width: 100% !important; }}
-#root > div:first-child, .stApp {{ border: none !important; }}
+    <style>
+    header[data-testid="stHeader"] {{ background-color: transparent !important; }}
+    [data-testid="stSidebarHeader"] {{ padding-bottom: 0rem !important; padding-top: 0rem !important; }}
+    .block-container {{ padding: 0rem 1rem 0rem 1rem !important; max-width: 100% !important; margin-top: -1.5rem; }}
+    #root > div:first-child, .stApp {{ border: none !important; }}
 
-/* YANK THE TITLE UP TO CLOSE THE RUNWAY */
-h1, h2 {{ color: {GLOBAL_COLOUR} !important; margin: -1.5rem 0 0.5rem 0 !important; padding: 0 !important; }}
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ display: none !important; }}
 
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ display: none !important; }}
+    [data-testid="stTabs"] button {{ padding-top: 0rem !important; padding-bottom: 0rem !important; }}
+    [data-testid="stTab"][aria-selected="true"] {{ color: {GLOBAL_COLOUR} !important; }}
+    [data-testid="stTab"][aria-selected="true"] p {{ color: {GLOBAL_COLOUR} !important; font-weight: 700 !important; font-size: 1rem !important; }}
+    [data-testid="stTab"]:not([aria-selected="true"]) p {{ font-size: 0.9rem !important; opacity: 0.7; }}
+    .stTabs div[data-baseweb="tab-highlight"] {{ background-color: {GLOBAL_COLOUR} !important; height: 2px !important; }}
 
-[data-testid="stTabs"] {{ margin-top: 0rem !important; }}
-[data-testid="stTabs"] button {{ padding-top: 0rem !important; padding-bottom: 0rem !important; }}
-[data-testid="stTab"][aria-selected="true"] {{ color: {GLOBAL_COLOUR} !important; }}
-[data-testid="stTab"][aria-selected="true"] p {{ color: {GLOBAL_COLOUR} !important; font-weight: 700 !important; font-size: 1rem !important; }}
-[data-testid="stTab"]:not([aria-selected="true"]) p {{ font-size: 0.9rem !important; opacity: 0.7; }}
-.stTabs div[data-baseweb="tab-highlight"] {{ background-color: {GLOBAL_COLOUR} !important; height: 2px !important; }}
+    [data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] {{
+        color: {GLOBAL_COLOUR} !important; font-weight: 800 !important; font-size: 1.25rem !important; line-height: 1.1 !important;
+    }}
+    [data-testid="stMetricLabel"] {{ font-size: 0.8rem !important; opacity: 0.8 !important; margin-bottom: -5px !important; }}
 
-/* KPI BOXES: Shorter boxes, but MORE space between label and number */
-[data-testid="stVerticalBlockBorderWrapper"] > div {{ padding: 0.3rem 0.8rem 0.4rem 0.8rem !important; border-radius: 8px !important; }}
-[data-testid="stVerticalBlockBorderWrapper"] .element-container {{ margin-bottom: 0px !important; }} /* Kills invisible padding */
+    h2 {{ color: {GLOBAL_COLOUR} !important; font-size: 1.6rem !important; margin: 0 !important; padding: 0 !important; }}
+    h6 {{ font-size: 0.9rem !important; font-weight: 600 !important; margin: 0 0 5px 0 !important; padding: 0 !important; opacity: 0.9; }}
+    .element-container {{ margin-bottom: 0px !important; }}
+    .stMarkdown {{ margin-bottom: 0px !important; }}
 
-[data-testid="stMetricLabel"] {{ font-size: 0.75rem !important; opacity: 0.8 !important; margin-bottom: 6px !important; }}
-[data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] {{
-    color: {GLOBAL_COLOUR} !important; font-weight: 800 !important; font-size: 1.15rem !important; line-height: 1 !important; margin-top: 0px !important;
-}}
-div[data-testid="stMetric"] {{ padding-bottom: 0px !important; margin-bottom: 0px !important; }}
+    /* PROGRESS BAR 15px HEIGHT & ROUNDED PILL SHAPE */
+    .stProgress > div > div:has(div[style*="translateX"]) {{ background-color: rgba(128, 128, 128, 0.15) !important; border-radius: 15px !important; height: 15px !important; }}
+    .stProgress div[style*="translateX"] {{ background-color: {GLOBAL_COLOUR} !important; height: 15px !important; border-radius: 15px !important; }}
 
-h6 {{ font-size: 0.9rem !important; font-weight: 600 !important; margin: 0 0 5px 0 !important; padding: 0 !important; opacity: 0.9; }}
+    [data-testid="stSidebar"] hr {{ margin: 0.5rem 0 !important; opacity: 0.2; border-bottom-color: {GLOBAL_COLOUR} !important; }}
+    [data-testid="stSidebar"] p {{ font-size: 0.8rem !important; margin-bottom: 0.2rem !important; }}
 
-.element-container {{ margin-bottom: 0.5rem !important; }}
-.stMarkdown {{ margin-bottom: 0px !important; }}
+    .podium-container {{ display: flex; gap: 8px; margin-bottom: 8px; }}
+    .podium-box {{ flex: 1; text-align: center; padding: 14px 8px; border-radius: 8px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
+    .first-place {{ border-top: 3px solid #FFD700; }}
+    .second-place {{ border-top: 3px solid #C0C0C0; }}
+    .third-place {{ border-top: 3px solid #CD7F32; }}
+    .podium-title {{ font-size: 1.05rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
+    .podium-name {{ font-size: 1.35rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
+    .podium-score {{ font-size: 1.05rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.2; }}
 
-.stProgress > div > div:has(div[style*="translateX"]) {{ background-color: rgba(128, 128, 128, 0.15) !important; border-radius: 10px !important; height: 15px !important; }}
-.stProgress div[style*="translateX"] {{ background-color: {GLOBAL_COLOUR} !important; height: 15px !important; border-radius: 10px !important; }}
+    [data-testid="stVerticalBlockBorderWrapper"] > div {{ padding: 0.7rem !important; border-radius: 8px !important; }}
+    [data-testid="stDataFrame"] {{ margin-bottom: 0px !important; }}
+    div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
+    div[data-testid="stPopover"] button p {{ text-align: left !important; }}
 
-[data-testid="stSidebar"] hr {{ margin: 0.5rem 0 !important; opacity: 0.2; border-bottom-color: {GLOBAL_COLOUR} !important; }}
-[data-testid="stSidebar"] p {{ font-size: 0.8rem !important; margin-bottom: 0.2rem !important; }}
-
-.podium-container {{ display: flex; gap: 8px; margin-bottom: 8px; }}
-.podium-box {{ flex: 1; text-align: center; padding: 14px 8px; border-radius: 8px; background-color: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.2); }}
-.first-place {{ border-top: 3px solid #FFD700; }}
-.second-place {{ border-top: 3px solid #C0C0C0; }}
-.third-place {{ border-top: 3px solid #CD7F32; }}
-.podium-title {{ font-size: 1.05rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
-.podium-name {{ font-size: 1.35rem; font-weight: bold; margin-bottom: 4px; color: var(--text-color); }}
-.podium-score {{ font-size: 1.05rem; color: {GLOBAL_COLOUR}; margin: 0px; font-weight: 600; line-height: 1.2; }}
-
-[data-testid="stDataFrame"] {{ margin-bottom: 0px !important; }}
-div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
-div[data-testid="stPopover"] button p {{ text-align: left !important; }}
-
-/* Restrict the separator line ONLY to the popover radio buttons (Filter Owner) */
-div[data-testid="stPopover"] div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 8px !important; padding-bottom: 8px !important; border-bottom: 1px solid rgba(128, 128, 128, 0.3) !important; }}
-
-/* Standard radio buttons gap (fixes settings tab) */
-div.stRadio div[role="radiogroup"] {{ gap: 0.25rem !important; }}
-</style>
+    /* FIX FOR RADIO BUTTON GAPS */
+    div.stRadio div[role="radiogroup"] {{ gap: 0rem !important; }}
+    div.stRadio div[role="radiogroup"] label {{ margin-bottom: 0px !important; padding-bottom: 0px !important; min-height: 25px !important; }}
+    </style>
 """
 
 CLASSIC_CSS = f"""
-<style>
-header[data-testid="stHeader"] {{ background-color: transparent !important; height: 2.8rem !important; }}
-[data-testid="stSidebarHeader"] {{ padding-bottom: 0rem !important; }}
-.block-container {{ padding-top: 2.5rem !important; padding-bottom: 1rem !important; padding-left: 1.25rem !important; padding-right: 1.25rem !important; }}
-#root > div:first-child, .stApp {{ border: none !important; }}
+    <style>
+    header[data-testid="stHeader"] {{ background-color: transparent !important; }}
+    [data-testid="stSidebarHeader"] {{ padding-bottom: 0rem !important; padding-top: 0rem !important; }}
+    .block-container {{ padding-top: 1rem !important; margin-top: -1.5rem; }}
+    #root > div:first-child, .stApp {{ border: none !important; }}
 
-h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ display: none !important; }}
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, h3 svg, h2 svg, h1 svg, a.header-anchor, .stMarkdown a svg {{ display: none !important; }}
 
-h1 {{ color: {GLOBAL_COLOUR} !important; margin: -1rem 0 0.5rem 0 !important; padding: 0 !important; }}
+    [data-testid="stTab"][aria-selected="true"] {{ color: {GLOBAL_COLOUR} !important; }}
+    [data-testid="stTab"][aria-selected="true"] p {{ color: {GLOBAL_COLOUR} !important; font-weight: 800 !important; font-size: 1.15rem !important; }}
+    [data-testid="stTab"]:not([aria-selected="true"]) p {{ font-size: 1rem !important; opacity: 0.75; }}
+    .stTabs div[data-baseweb="tab-highlight"] {{ background-color: {GLOBAL_COLOUR} !important; height: 3px !important; border-radius: 3px; }}
+    [data-testid="stTab"] .react-aria-SelectionIndicator {{ background-color: {GLOBAL_COLOUR} !important; }}
+    [data-testid="stTab"]:not([aria-selected="true"]):hover p {{ color: {GLOBAL_COLOUR} !important; opacity: 1; }}
 
-[data-testid="stTabs"] {{ margin-top: 0.75rem !important; }}
-[data-testid="stTab"][aria-selected="true"] {{ color: {GLOBAL_COLOUR} !important; }}
-[data-testid="stTab"][aria-selected="true"] p {{ color: {GLOBAL_COLOUR} !important; font-weight: 800 !important; font-size: 1.15rem !important; }}
-[data-testid="stTab"]:not([aria-selected="true"]) p {{ font-size: 1rem !important; opacity: 0.75; }}
-.stTabs div[data-baseweb="tab-highlight"] {{ background-color: {GLOBAL_COLOUR} !important; height: 3px !important; border-radius: 3px; }}
-[data-testid="stTab"] .react-aria-SelectionIndicator {{ background-color: {GLOBAL_COLOUR} !important; }}
-[data-testid="stTab"]:not([aria-selected="true"]):hover p {{ color: {GLOBAL_COLOUR} !important; opacity: 1; }}
+    [data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] {{ color: {GLOBAL_COLOUR} !important; font-weight: 900 !important; font-size: 1.6rem !important; white-space: normal !important; line-height: 1.2 !important; }}
 
-[data-testid="stMetricValue"] > div, [data-testid="stMetricValue"] {{ color: {GLOBAL_COLOUR} !important; font-weight: 900 !important; font-size: 1.6rem !important; white-space: normal !important; line-height: 1.2 !important; }}
+    h1 {{ color: {GLOBAL_COLOUR} !important; }}
+    h3 {{ color: var(--text-color) !important; border-left: 5px solid {GLOBAL_COLOUR}; padding-left: 12px !important; margin-top: 15px !important; margin-bottom: 15px !important; }}
 
-h3 {{ color: var(--text-color) !important; border-left: 5px solid {GLOBAL_COLOUR}; padding-left: 12px !important; margin-top: 15px !important; margin-bottom: 15px !important; }}
+    .stProgress > div > div:has(div[style*="translateX"]) {{ background-color: rgba(128, 128, 128, 0.15) !important; border-radius: 10px !important; height: 18px !important; overflow: hidden !important; }}
+    .stProgress div[style*="translateX"] {{ background-color: {GLOBAL_COLOUR} !important; height: 18px !important; border-radius: 10px !important; }}
 
-.stProgress > div > div:has(div[style*="translateX"]) {{ background-color: rgba(128, 128, 128, 0.15) !important; border-radius: 10px !important; height: 18px !important; overflow: hidden !important; }}
-.stProgress div[style*="translateX"] {{ background-color: {GLOBAL_COLOUR} !important; height: 18px !important; border-radius: 10px !important; }}
+    [data-testid="stSidebar"] hr {{ border-bottom-color: {GLOBAL_COLOUR} !important; opacity: 0.2; }}
 
-[data-testid="stSidebar"] hr {{ border-bottom-color: {GLOBAL_COLOUR} !important; opacity: 0.2; }}
+    .podium-box {{ text-align: center; padding: 20px; border-radius: 10px; background-color: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.1); }}
+    .first-place {{ border-top: 5px solid #FFD700; margin-top: 0px; }}
+    .second-place {{ border-top: 5px solid #C0C0C0; margin-top: 30px; }}
+    .third-place {{ border-top: 5px solid #CD7F32; margin-top: 50px; }}
+    .podium-title {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: var(--text-color) !important; }}
+    .podium-name {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; color: var(--text-color) !important; }}
+    .podium-score {{ font-size: 1rem; opacity: 0.8; margin: 0px; color: var(--text-color) !important; }}
 
-.podium-box {{ text-align: center; padding: 20px; border-radius: 10px; background-color: rgba(128, 128, 128, 0.05); border: 1px solid rgba(128, 128, 128, 0.1); }}
-.first-place {{ border-top: 5px solid #FFD700; margin-top: 0px; }}
-.second-place {{ border-top: 5px solid #C0C0C0; margin-top: 30px; }}
-.third-place {{ border-top: 5px solid #CD7F32; margin-top: 50px; }}
-.podium-title {{ font-size: 1.8rem; font-weight: bold; margin-bottom: 10px; color: var(--text-color) !important; }}
-.podium-name {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; color: var(--text-color) !important; }}
-.podium-score {{ font-size: 1rem; opacity: 0.8; margin: 0px; color: var(--text-color) !important; }}
+    @media (min-width: 641px) {{
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 2; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 1; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; }}
+    }}
+    @media (max-width: 640px) {{
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; flex-direction: column !important; gap: 15px !important; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 1; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 2; }}
+        .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
+        .st-key-podium_container .podium-box {{ height: auto !important; margin-top: 0px !important; padding: 15px !important; }}
+    }}
 
-@media (min-width: 641px) {{
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 2; }}
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 1; }}
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; }}
-}}
-@media (max-width: 640px) {{
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] {{ display: flex !important; flex-direction: column !important; gap: 15px !important; }}
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(1) {{ order: 1; }}
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(2) {{ order: 2; }}
-    .st-key-podium_container div[data-testid="stHorizontalBlock"] > div:nth-of-type(3) {{ order: 3; }}
-    .st-key-podium_container .podium-box {{ height: auto !important; margin-top: 0px !important; padding: 15px !important; }}
-}}
+    div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
+    div[data-testid="stPopover"] button p {{ text-align: left !important; }}
 
-div[data-testid="stPopover"] button {{ justify-content: flex-start !important; }}
-div[data-testid="stPopover"] button p {{ text-align: left !important; }}
-
-/* Restrict the separator line ONLY to the popover radio buttons (Filter Owner) */
-div[data-testid="stPopover"] div[role="radiogroup"] > label:first-of-type {{ margin-bottom: 8px !important; padding-bottom: 8px !important; border-bottom: 1px solid rgba(128, 128, 128, 0.3) !important; }}
-
-/* Standard radio buttons gap (fixes settings tab) */
-div.stRadio div[role="radiogroup"] {{ gap: 0.25rem !important; }}
-</style>
+    /* FIX FOR RADIO BUTTON GAPS */
+    div.stRadio div[role="radiogroup"] {{ gap: 0rem !important; }}
+    div.stRadio div[role="radiogroup"] label {{ margin-bottom: 0px !important; padding-bottom: 0px !important; min-height: 25px !important; }}
+    </style>
 """
 
 # ----------------------------------------------------------------------
 # DATA LOADING
 # ----------------------------------------------------------------------
+
 DROPBOX_DIRECT_URL = "https://www.dropbox.com/scl/fi/m69ohs691eb8zbkdzsg9z/10000-beers-log.xlsx?rlkey=n7buk0hfmsubo7ivkz6qyf97s&st=2v1r6dop&dl=1"
 BEER_GOAL = 10000
 
@@ -185,7 +176,9 @@ def load_data():
         normalized_dates = pd.to_datetime(beers_df['Date of Beer (UTC)'], dayfirst=True, errors='coerce')
         beers_df['Datetime'] = pd.to_datetime(normalized_dates.dt.strftime('%Y-%m-%d') + " " + beers_df['Time of Beer (UTC)'].astype(str), errors='coerce')
 
-        beers_df = beers_df.dropna(subset=['Datetime']).sort_values(by="Datetime").reset_index(drop=True)
+        # Drop invalid datetimes but DO NOT sort chronologically.
+        # This forces the app to maintain the strict original row entry order from the Excel sheet.
+        beers_df = beers_df.dropna(subset=['Datetime']).reset_index(drop=True)
         beers_df['Datetime'] = beers_df['Datetime'].dt.tz_localize('UTC')
         return beers_df, parsed_last_sync, parsed_manual_sync
     except Exception as e:
@@ -203,6 +196,7 @@ if df.empty:
 # ----------------------------------------------------------------------
 # HELPER FUNCTIONS
 # ----------------------------------------------------------------------
+
 def time_ago(timestamp):
     if pd.isna(timestamp): return "Never"
     total_secs = (datetime.now(timezone.utc) - timestamp).total_seconds()
@@ -231,34 +225,32 @@ def get_ordinal(rank_num):
 # ----------------------------------------------------------------------
 # SIDEBAR DYNAMIC RENDERING
 # ----------------------------------------------------------------------
+
 with st.sidebar:
     st.image("assets/profile.jpg", clamp=True)
 
-    is_saas = st.session_state["layout_mode"] == "Compact"
+    is_compact = st.session_state["layout_mode"] == "Compact"
 
-    if is_saas:
+    if is_compact:
         st.markdown("---")
         st.markdown("###### Recent Beers 🍺")
-
-        recent_beers_html = ""
-        for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
+        # iloc[::-1] reverses the dataframe to show bottom rows first (ignores chronological sorting)
+        for _, beer_row in df.iloc[::-1].head(10).iterrows():
             display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
-            recent_beers_html += f"<div style='font-size: 0.75rem; padding: 1px 0; margin-bottom: 1px;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>"
-
-        st.markdown(recent_beers_html, unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size: 0.75rem; padding: 2px 0;'><b>{beer_row['Beer Owner']}</b> <span style='opacity:0.6; float:right;'>{display_time}</span></div>", unsafe_allow_html=True)
     else:
         st.divider()
         st.subheader("Recent Beers* 🍺", anchor=False)
-        for _, beer_row in df.sort_values(by="Datetime", ascending=False).head(10).iterrows():
+        for _, beer_row in df.iloc[::-1].head(10).iterrows():
             display_time = "recently" if beer_row.get('Is_Fallback_Time', False) else time_ago(beer_row['Datetime'])
             st.markdown(f"**{beer_row['Beer Owner']}** - *{display_time}*")
 
-    if is_saas:
+    if is_compact:
         st.markdown("---")
         st.markdown("###### System Status")
         st.markdown(f"""
             <div style="font-size: 0.75rem; margin-bottom: 10px;">
-                <div style="opacity:0.7; margin-bottom: 2px;">Last Entry: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(manual_sync_dt)}</span></div>
+                <div style="opacity:0.7">Last Entry: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(manual_sync_dt)}</span></div>
                 <div style="opacity:0.7">Last Sync: <span style="color:{GLOBAL_COLOUR}; font-weight:bold; float:right;">{time_ago(last_sync_dt)}</span></div>
             </div>
         """, unsafe_allow_html=True)
@@ -291,17 +283,22 @@ else:
 # ----------------------------------------------------------------------
 # IFRAME PERSISTENCE BRIDGE
 # ----------------------------------------------------------------------
+# Silently broadcasts the user's choice to your parent HTML website.
+# The HTML website catches this and saves it to its LocalStorage.
 layout_val = "classic" if st.session_state["layout_mode"] == "Classic" else "compact"
 color_val = "custom" if st.session_state["color_scheme"] == "Custom colours" else "uniform"
+
 components.html(f"""
-<script>
-window.top.postMessage({{type: 'SET_PREFS', layout: '{layout_val}', color: '{color_val}'}}, '*');
-</script>
+    <script>
+        // Send message to the topmost window (your .beer website)
+        window.top.postMessage({{type: 'SET_PREFS', layout: '{layout_val}', color: '{color_val}'}}, '*');
+    </script>
 """, height=0, width=0)
 
 # ----------------------------------------------------------------------
 # PRE-COMPUTE SHARED CHART DATA (For Performance)
 # ----------------------------------------------------------------------
+
 # 1. KPIs
 total_beers = len(df)
 progress_pct = total_beers / BEER_GOAL
@@ -331,7 +328,7 @@ rest_df = lb_df.iloc[3:].copy() if len(lb_df) > 3 else pd.DataFrame(columns=['Na
 if not rest_df.empty:
     rest_df.insert(0, '#', [get_ordinal(i + 4) for i in range(len(rest_df))])
 
-# Top 3 (Last 30 Days)
+# Top 3 (Last 30 Days) - Used mainly in Classic Mode
 last_30_df = df[df['Datetime'] >= pd.Timestamp.now(tz='UTC') - pd.DateOffset(days=30)]
 if not last_30_df.empty:
     lm_lb = last_30_df['Beer Owner'].value_counts().reset_index().head(3)
@@ -340,11 +337,12 @@ if not last_30_df.empty:
 else:
     lm_lb = pd.DataFrame()
 
-# 3. Pie Chart
+# 3. Pie Chart (Now respects the setting tab)
 if st.session_state["color_scheme"] == "Custom colours":
     custom_colors = {"Tom": "#FFBA00", "Logan": "#D80030", "Archie": "#FF8A00", "Mills": "#00D5A0", "JJ": "#3461EF", "Moo": "#6DCFBA", "KSI": "#8936B6", "Ashton": "#A871FF", "Sam": "#E50184"}
     fig_pie = px.pie(lb_df, values='Beers', names='Name', hole=0.4, color='Name', color_discrete_map=custom_colors)
 else:
+    # Uniform theme closely following the GLOBAL_COLOUR
     uniform_colors = ['#B84A00', '#CC5626', '#E6632E', '#EE7846', '#F19167', '#F4AA88', '#F7C3A9', '#FADCCA', '#FEE8DC']
     fig_pie = px.pie(lb_df, values='Beers', names='Name', hole=0.4, color_discrete_sequence=uniform_colors)
 
@@ -390,7 +388,6 @@ temp_df = df.copy()
 temp_df['Hr'] = temp_df['Datetime'].dt.hour.map(hour_map)
 order = [f"{h % 12 or 12}{'AM' if h < 12 else 'PM'}" for h in [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4]]
 h_counts = temp_df['Hr'].value_counts().reset_index()
-
 fig_h = px.bar(h_counts, x='Hr', y='count', category_orders={"Hr": order})
 fig_h.update_traces(marker_color=GLOBAL_COLOUR)
 fig_h.update_layout(margin=dict(l=0, r=0, t=5, b=0), xaxis_title="", yaxis_title="", xaxis=dict(zeroline=False, tickfont=dict(size=8)), yaxis=dict(zeroline=False, visible=False))
@@ -404,15 +401,20 @@ fig_d.update_layout(margin=dict(l=0, r=0, t=5, b=0), xaxis_title="", yaxis_title
 # ----------------------------------------------------------------------
 # MAIN RENDERING
 # ----------------------------------------------------------------------
-# Unified Header configuration rendering exactly the same across both layout modes.
-st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h1>", unsafe_allow_html=True)
+
+if st.session_state["layout_mode"] == "Compact":
+    st.markdown("<h2 style='margin-bottom: 0px;'>🍻 10,000 Beers Challenge</h2>", unsafe_allow_html=True)
+else:
+    st.markdown("<h1 style='text-align: center;'>🍻 10,000 Beers Challenge 🍻</h1>", unsafe_allow_html=True)
 
 tab1, tab2, tab3 = st.tabs(["Dashboard", "Full Beer List", "Settings"])
 
 with tab1:
     if st.session_state["layout_mode"] == "Compact":
         # ---------------- SaaS LAYOUT ----------------
-        col_kpi1, col_kpi2, col_kpi3 = st.columns(3, gap="small")
+        st.markdown("<div style='margin-top: 8px;'></div>", unsafe_allow_html=True)
+
+        col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
         with col_kpi1:
             with st.container(border=True): st.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
         with col_kpi2:
@@ -421,13 +423,13 @@ with tab1:
             with st.container(border=True): st.metric("Estimated Finish Date", eta_str)
 
         st.markdown(f"""
-            <div style="background-color: rgba(128, 128, 128, 0.15); border-radius: 10px; height: 15px; width: 100%; position: relative; overflow: hidden; margin-bottom: 0.5rem;">
-                <div style="background-color: {GLOBAL_COLOUR}; height: 100%; width: {min(progress_pct * 100, 100)}%; border-radius: 10px;"></div>
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: flex-start; padding-left: 10px; font-size: 0.65rem; font-weight: 800; color: white; text-shadow: 0px 1px 2px rgba(0,0,0,0.8);">{math.floor(progress_pct * 100)}%</div>
+            <div style="background-color: rgba(128, 128, 128, 0.15); border-radius: 15px; height: 15px; width: 100%; position: relative; overflow: hidden; margin-top: 4px; margin-bottom: 16px;">
+                <div style="background-color: {GLOBAL_COLOUR}; height: 100%; width: {min(progress_pct * 100, 100)}%; border-radius: 15px;"></div>
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: flex-start; padding-left: 12px; font-size: 0.65rem; font-weight: 800; color: white; text-shadow: 0px 1px 2px rgba(0,0,0,0.8);">{math.floor(progress_pct * 100)}%</div>
             </div>
         """, unsafe_allow_html=True)
 
-        c1, c2, c3 = st.columns([1.1, 1, 1.1], gap="small")
+        c1, c2, c3 = st.columns([1.1, 1, 1.1])
         with c1:
             with st.container(border=True):
                 st.markdown("###### All-Time Leaderboard")
@@ -450,7 +452,8 @@ with tab1:
                         </div>
                     </div>
                 """, unsafe_allow_html=True)
-                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=387)
+                # Height adjusted to 370px to compensate for the larger padding/fonts in the podium boxes above
+                st.dataframe(rest_df[['#', 'Name', 'Beers']], use_container_width=True, hide_index=True, height=370)
 
         with c2:
             with st.container(border=True):
@@ -459,25 +462,25 @@ with tab1:
                 st.plotly_chart(fig_pie, use_container_width=True, config={'displayModeBar': False})
             with st.container(border=True):
                 st.markdown("###### Activity Heatmap")
-                fig_cal.update_layout(height=233)
+                fig_cal.update_layout(height=180)
                 st.plotly_chart(fig_cal, use_container_width=True, config={'displayModeBar': False})
 
         with c3:
             with st.container(border=True):
                 st.markdown("###### Cumulative Beers")
-                fig_line.update_layout(height=265)
+                fig_line.update_layout(height=225)
                 st.plotly_chart(fig_line, use_container_width=True, config={'displayModeBar': False})
 
-            cc1, cc2 = st.columns(2, gap="small")
+            cc1, cc2 = st.columns(2)
             with cc1:
                 with st.container(border=True):
                     st.markdown("###### Peak Times (UTC)")
-                    fig_h.update_layout(height=193)
+                    fig_h.update_layout(height=180)
                     st.plotly_chart(fig_h, use_container_width=True, config={'displayModeBar': False})
             with cc2:
                 with st.container(border=True):
                     st.markdown("###### Peak Days (UTC)")
-                    fig_d.update_layout(height=193)
+                    fig_d.update_layout(height=180)
                     st.plotly_chart(fig_d, use_container_width=True, config={'displayModeBar': False})
 
     else:
@@ -486,13 +489,14 @@ with tab1:
         display_pct = math.floor(progress_pct * 100)
         bar_width = min(progress_pct * 100, 100)
         st.markdown(f"""
-            <div style="background-color: rgba(128, 128, 128, 0.15); border-radius: 10px; height: 24px; width: 100%; position: relative; overflow: hidden; margin-bottom: 1rem;">
+            <div style="background-color: rgba(128, 128, 128, 0.15); border-radius: 10px; height: 24px; width: 100%; position: relative; overflow: hidden;">
                 <div style="background-color: {GLOBAL_COLOUR}; height: 100%; width: {bar_width}%; border-radius: 10px;"></div>
                 <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: flex-start; padding-left: 12px; font-size: 0.8rem; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.6);">{display_pct}%</div>
             </div>
         """, unsafe_allow_html=True)
+        st.write("")
 
-        col1, col2, col3 = st.columns(3, gap="medium")
+        col1, col2, col3 = st.columns(3)
         with col1:
             with st.container(border=True): st.metric("Total Beers So Far", f"{total_beers:,} / {BEER_GOAL:,}")
         with col2:
@@ -506,7 +510,7 @@ with tab1:
         with col_left:
             st.subheader("All-Time Leaderboard 🏆")
             with st.container(key="podium_container"):
-                pod1, pod2, pod3 = st.columns(3, vertical_alignment="bottom", gap="medium")
+                pod1, pod2, pod3 = st.columns(3, vertical_alignment="bottom")
                 with pod1:
                     st.markdown(f"<div class='podium-box first-place' style='height: 310px; display: flex; flex-direction: column; justify-content: center;'><div class='podium-title'>1st 🥇</div><div class='podium-name'><b>{t_names[0]}</b></div><div class='podium-score'>🍺 {t_scores[0]} beers</div><div style='font-size: 0.8em; opacity: 0.7;'>~{t_spd[0]} beers/day</div></div>", unsafe_allow_html=True)
                 with pod2:
@@ -544,7 +548,7 @@ with tab1:
 
         st.divider()
 
-        col_time1, col_time2 = st.columns(2, gap="medium")
+        col_time1, col_time2 = st.columns(2)
         with col_time1:
             st.subheader("Peak Beer Times (UTC)")
             fig_h.update_layout(height=350)
@@ -555,7 +559,9 @@ with tab1:
             st.plotly_chart(fig_d, use_container_width=True)
 
 with tab2:
-    col_title2, col_filter = st.columns([4, 1], vertical_alignment="center", gap="medium")
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+    col_title2, col_filter = st.columns([4, 1], vertical_alignment="center")
     with col_title2:
         if st.session_state["layout_mode"] == "Compact":
             st.markdown("###### Complete Log Data")
@@ -566,7 +572,10 @@ with tab2:
         with st.popover("Filter Owner", use_container_width=True):
             selected_owner = st.radio("Person:", ["𝗔𝗹𝗹"] + owners_sorted, label_visibility="collapsed")
 
-    display_df = df[['Datetime', 'Beer Owner']].sort_values(by="Datetime", ascending=False).reset_index(drop=True)
+    display_df = df[['Datetime', 'Beer Owner']].copy()
+
+    # Reverse the order to show newest at top based purely on row position
+    display_df = display_df.iloc[::-1].reset_index(drop=True)
     display_df.insert(0, "Beer #", range(len(display_df), 0, -1))
 
     if selected_owner != "𝗔𝗹𝗹":
@@ -581,7 +590,7 @@ with tab2:
         hide_index=True,
         height=670,
         column_config={
-            "Date": st.column_config.DatetimeColumn("Date", format="DD MMM YYYY"),
+            "Date": st.column_config.DatetimeColumn("Date", format="Do MMMM YYYY"),
             "Time (UTC)": st.column_config.DatetimeColumn("Time (UTC)", format="HH:mm")
         }
     )
@@ -589,6 +598,7 @@ with tab2:
     st.markdown(f"<div style='font-size: 0.75rem; color: var(--text-color); opacity: 0.7; padding-top: 5px;'>Showing {len(display_df):,} of {len(df):,} total beers</div>", unsafe_allow_html=True)
 
 with tab3:
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
     with st.container(border=True):
         if st.session_state["layout_mode"] == "Compact":
             st.markdown("###### Settings")
@@ -597,7 +607,7 @@ with tab3:
 
         st.write("Customise the dashboard. These settings are saved automatically to your device.")
 
-        c_set1, c_set2 = st.columns(2, gap="medium")
+        c_set1, c_set2 = st.columns(2)
         with c_set1:
             new_layout = st.radio(
                 "Layout Mode",
