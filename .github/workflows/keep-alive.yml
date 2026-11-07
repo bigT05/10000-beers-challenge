@@ -2,19 +2,18 @@ name: Keep Streamlit app awake
 
 on:
   schedule:
-    # Every 6 hours. Well inside the 12 hour sleep window.
     - cron: "17 */6 * * *"
-  workflow_dispatch: {}   # lets you run it manually from the Actions tab
+  workflow_dispatch: {}
 
 jobs:
   wake:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install Playwright and Chromium
         run: |
@@ -24,7 +23,6 @@ jobs:
 
       - name: Visit the app like a real browser
         env:
-          # Set this in repo Settings > Secrets and variables > Actions > Variables
           APP_URL: ${{ vars.APP_URL }}
         run: |
           cat > visit.js <<'EOF'
@@ -36,29 +34,47 @@ jobs:
 
             const browser = await chromium.launch();
             const page = await browser.newPage();
-            await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-            // If the app is asleep, click the wake up button.
-            const wake = page.getByRole("button", {
-              name: /get this app back up/i,
-            });
-            if (await wake.isVisible({ timeout: 8000 }).catch(() => false)) {
-              console.log("App was asleep, waking it up");
-              await wake.click();
+            try {
+              await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+              // If the app is asleep, click the wake up button.
+              const wake = page.getByRole("button", { name: /get this app back up/i });
+              if (await wake.isVisible({ timeout: 8000 }).catch(() => false)) {
+                console.log("App was asleep, waking it up");
+                await wake.click();
+              }
+
+              // The app may be on the page itself or inside an iframe.
+              const selector = '[data-testid="stApp"]';
+              await Promise.any([
+                page.locator(selector).waitFor({ state: "visible", timeout: 150000 }),
+                page.frameLocator("iframe").first().locator(selector)
+                  .waitFor({ state: "visible", timeout: 150000 }),
+              ]);
+
+              // Stay a bit so the websocket connection counts as a real visit.
+              await page.waitForTimeout(10000);
+              console.log("Visited OK:", await page.title());
+            } catch (err) {
+              console.error("FAILED:", err.message);
+              console.error("Final URL:", page.url());
+              console.error("Frames:", page.frames().map((f) => f.url()));
+              const text = await page.locator("body").innerText().catch(() => "");
+              console.error("Page text:", text.slice(0, 500));
+              await page.screenshot({ path: "fail.png", fullPage: true }).catch(() => {});
+              await browser.close();
+              process.exit(1);
             }
-
-            // Wait until Streamlit has actually rendered (the websocket connects),
-            // which is what counts as a real visit.
-            await page
-              .locator('[data-testid="stApp"]')
-              .waitFor({ state: "visible", timeout: 90000 });
-            await page.waitForTimeout(10000);
-
-            console.log("Visited OK:", await page.title());
             await browser.close();
-          })().catch((err) => {
-            console.error(err);
-            process.exit(1);
-          });
+          })();
           EOF
           node visit.js
+
+      - name: Upload screenshot on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fail-screenshot
+          path: fail.png
+          if-no-files-found: ignore
