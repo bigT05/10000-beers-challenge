@@ -50,12 +50,8 @@ jobs:
             // Wait until Streamlit has actually rendered (the websocket connects),
             // which is what counts as a real visit.
             await page
-              .locator('iframe[title="streamlitApp"]')
-              .waitFor({ state: "attached", timeout: 60000 });
-            await page
-              .frameLocator('iframe[title="streamlitApp"]')
               .locator('[data-testid="stApp"]')
-              .waitFor({ state: "visible", timeout: 120000 });
+              .waitFor({ state: "visible", timeout: 90000 });
             await page.waitForTimeout(10000);
 
             console.log("Visited OK:", await page.title());
