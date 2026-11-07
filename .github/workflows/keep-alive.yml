@@ -1,0 +1,64 @@
+name: Keep Streamlit app awake
+
+on:
+  schedule:
+    # Every 6 hours. Well inside the 12 hour sleep window.
+    - cron: "17 */6 * * *"
+  workflow_dispatch: {}   # lets you run it manually from the Actions tab
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm init -y
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: Visit the app like a real browser
+        env:
+          # Set this in repo Settings > Secrets and variables > Actions > Variables
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          cat > visit.js <<'EOF'
+          const { chromium } = require("playwright");
+
+          (async () => {
+            const url = process.env.APP_URL;
+            if (!url) throw new Error("APP_URL is not set");
+
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+            // If the app is asleep, click the wake up button.
+            const wake = page.getByRole("button", {
+              name: /get this app back up/i,
+            });
+            if (await wake.isVisible({ timeout: 8000 }).catch(() => false)) {
+              console.log("App was asleep, waking it up");
+              await wake.click();
+            }
+
+            // Wait until Streamlit has actually rendered (the websocket connects),
+            // which is what counts as a real visit.
+            await page
+              .locator('[data-testid="stApp"]')
+              .waitFor({ state: "visible", timeout: 90000 });
+            await page.waitForTimeout(10000);
+
+            console.log("Visited OK:", await page.title());
+            await browser.close();
+          })().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          EOF
+          node visit.js
